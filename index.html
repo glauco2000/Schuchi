@@ -3,222 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sakura Sushi Delivery</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>Sakura Sushi - Delivery</title>
     <style>
-        :root {
-            --primary: #d90429;
-            --primary-hover: #b50322;
-            --dark: #1b1b1b;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --success: #2b9348;
-            --danger: #ae2012;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--light); color: var(--dark); padding-bottom: 100px; -webkit-font-smoothing: antialiased; }
+        /* Estilos básicos para o layout */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; padding-bottom: 80px; }
+        header { background-color: #d90429; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         
-        header { background-color: var(--dark); color: white; padding: 25px 15px; text-align: center; border-bottom: 4px solid var(--primary); }
-        header h1 { font-size: 2rem; margin-bottom: 5px; font-weight: 700; }
-        header p { font-size: 0.95rem; color: #ccc; }
+        /* Lista de Produtos */
+        .produto { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 15px; }
+        .produto img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background-color: #eee; }
+        .produto-info { flex-grow: 1; }
+        .produto-info h3 { margin: 0 0 5px 0; }
+        .produto-info p { margin: 0; color: #555; font-size: 0.9rem; }
+        .preco { font-weight: bold; color: #2b9348; font-size: 1.2rem; margin-top: 5px; display: block; }
+        button { background-color: #d90429; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { background-color: #b20322; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .status-bar { padding: 12px; text-align: center; font-weight: 600; font-size: 0.9rem; }
-        .open { background-color: var(--success); color: white; }
-        .closed { background-color: var(--danger); color: white; }
-
-        .container { max-width: 1200px; margin: 25px auto; padding: 0 15px; }
-        h2.section-title { font-size: 1.5rem; margin-bottom: 20px; color: var(--dark); border-left: 5px solid var(--primary); padding-left: 10px; }
+        /* Carrinho Flutuante */
+        #cart-float { position: fixed; bottom: 20px; right: 20px; background-color: #2b9348; color: white; padding: 15px 20px; border-radius: 50px; display: none; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; }
+        #cart-float:hover { background-color: #217036; }
         
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-3px); }
-        .card img { width: 100%; height: 170px; object-fit: cover; background-color: #eee; }
-        .card-content { padding: 18px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: var(--dark); }
-        .card-desc { font-size: 0.85rem; color: var(--gray); margin-bottom: 15px; line-height: 1.4; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #f1f1f1; }
-        .price { font-size: 1.15rem; font-weight: 700; color: var(--primary); }
+        /* Modal de Checkout */
+        #checkout-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1001; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { margin-top: 0; color: #d90429; }
+        .cart-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .cart-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; }
+        .btn-remover { background-color: #ff4d4d; padding: 5px 10px; font-size: 0.8rem; }
         
-        button { background-color: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; }
-        button:hover { background-color: var(--primary-hover); }
-        button:disabled { background-color: var(--gray); cursor: not-allowed; opacity: 0.7; }
-
-        .cart-float { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.25); z-index: 100; backdrop-filter: blur(5px); }
-        .cart-float div { font-size: 1rem; }
-        .cart-float strong { color: #ffD166; font-size: 1.1rem; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 200; padding: 10px; }
-        .modal-content { background: white; width: 100%; max-width: 550px; padding: 25px; border-radius: 14px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .modal-content h2 { margin-bottom: 15px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; font-size: 1.3rem; }
-        
+        /* Formulário */
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #444; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; outline: none; transition: border 0.2s; }
-        .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
-        
-        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; border-bottom: 1px solid #f1f1f1; padding-bottom: 10px; }
-        .cart-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 12px; }
-        .btn-remover { background-color: var(--danger); padding: 5px 10px; font-size: 0.75rem; border-radius: 4px; }
-        
-        #pix-container, #card-container { text-align: center; margin: 15px 0; display: none; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px dashed #ddd; }
-        #qrcode-pix { display: inline-block; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 6px; margin-top: 8px; }
-
-        @media (max-width: 480px) {
-            header h1 { font-size: 1.6rem; }
-            .container { padding: 0 10px; margin: 15px auto; }
-            .modal-content { padding: 15px; }
-            .cart-float { padding: 12px 15px; }
-        }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .status-loja { text-align: center; padding: 10px; font-weight: bold; background-color: #ffc107; display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🍣 Sakura Sushi</h1>
-        <p>O melhor sushi da cidade entregue na sua porta</p>
+        <h1 style="margin: 0;">Sakura Sushi</h1>
+        <p style="margin: 5px 0 0 0;">Faça seu pedido online!</p>
     </header>
-
-    <div id="status-bar" class="status-bar">Verificando horário...</div>
+    
+    <div id="status-loja" class="status-loja">A loja está fechada no momento. Retornaremos em breve!</div>
 
     <div class="container">
-        <h2 class="section-title">Nosso Cardápio</h2>
-        <div class="menu-grid" id="menu-grid"></div>
-    </div>
-
-    <div class="cart-float" id="cart-float" style="display: none;">
-        <div>
-            <span id="cart-count">0</span> itens | Total: <strong id="cart-total">R$ 0,00</strong>
+        <!-- Estrutura puxando as imagens do diretório img/ -->
+        <div class="produto">
+            <img src="img/combo_sakura.jpg" onerror="this.src='https://via.placeholder.com/80?text=Sushi'" alt="Combo Sakura">
+            <div class="produto-info">
+                <h3>Combo Sakura (40 peças)</h3>
+                <p>10 uramakis, 10 hossomakis, 10 niguiris, 10 sashimis.</p>
+                <span class="preco">R$ 89,90</span>
+            </div>
+            <button onclick="adicionarAoCarrinho(1, 'Combo Sakura', 89.90, 'img/combo_sakura.jpg')">Adicionar</button>
         </div>
-        <button onclick="abrirCheckout()">Ver Carrinho</button>
+
+        <div class="produto">
+            <img src="img/temaki_salmao.jpg" onerror="this.src='https://via.placeholder.com/80?text=Temaki'" alt="Temaki de Salmão">
+            <div class="produto-info">
+                <h3>Temaki de Salmão Completo</h3>
+                <p>Salmão em cubos, cream cheese e cebolinha.</p>
+                <span class="preco">R$ 28,50</span>
+            </div>
+            <button onclick="adicionarAoCarrinho(2, 'Temaki de Salmão Completo', 28.50, 'img/temaki_salmao.jpg')">Adicionar</button>
+        </div>
+
+        <div class="produto">
+            <img src="img/hot_philadelphia.jpg" onerror="this.src='https://via.placeholder.com/80?text=Hot'" alt="Hot Philadelphia">
+            <div class="produto-info">
+                <h3>Hot Philadelphia (10 peças)</h3>
+                <p>O tradicional rolinho empanado e frito.</p>
+                <span class="preco">R$ 24,90</span>
+            </div>
+            <button onclick="adicionarAoCarrinho(3, 'Hot Philadelphia', 24.90, 'img/hot_philadelphia.jpg')">Adicionar</button>
+        </div>
     </div>
 
-    <!-- Modal de Checkout -->
-    <div class="modal" id="checkout-modal">
+    <!-- Botão Flutuante do Carrinho -->
+    <div id="cart-float" onclick="abrirCheckout()">
+        <span style="font-size: 1.5rem;">🛒</span>
+        <div>
+            <div style="font-weight: bold;"><span id="cart-count">0</span> itens</div>
+            <div id="cart-total">R$ 0,00</div>
+        </div>
+    </div>
+
+    <!-- Modal de Resumo e Checkout -->
+    <div id="checkout-modal">
         <div class="modal-content">
             <h2>Finalizar Pedido</h2>
             <div id="resumo-carrinho"></div>
-            <br>
-            <form id="order-form" onsubmit="finalizarPedido(event)">
+            
+            <form id="form-pedido" onsubmit="finalizarPedido(event)" style="margin-top: 20px;">
                 <div class="form-group">
-                    <label>Seu Nome Completo:</label>
-                    <input type="text" id="nome" required placeholder="Ex: Maria Oliveira">
+                    <label>Nome completo</label>
+                    <input type="text" id="nome" required>
                 </div>
                 <div class="form-group">
-                    <label>Telefone / WhatsApp:</label>
-                    <input type="text" id="telefone" required placeholder="(48) 99999-9999">
+                    <label>Telefone (WhatsApp)</label>
+                    <input type="tel" id="telefone" required>
                 </div>
                 <div class="form-group">
-                    <label>Endereço Completo de Entrega:</label>
-                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Complemento">
+                    <label>Endereço de Entrega</label>
+                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Referência">
                 </div>
                 <div class="form-group">
-                    <label>Forma de Pagamento:</label>
+                    <label>Forma de Pagamento</label>
                     <select id="pagamento" required onchange="tratarPagamento()">
-                        <option value="">Selecione...</option>
-                        <option value="Pix">Pix (Chave / QR Code)</option>
-                        <option value="Cartão de Crédito">Cartão de Crédito (Online / Maquininha)</option>
-                        <option value="Dinheiro">Dinheiro na Entrega (Levar Troco)</option>
+                        <option value="" disabled selected>Selecione...</option>
+                        <option value="Pix">Pix (Mercado Pago)</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito (Mercado Pago)</option>
+                        <option value="Dinheiro">Dinheiro na Entrega</option>
                     </select>
                 </div>
-
-                <!-- Área Pix Manual / Copia e Cola Segura -->
-                <div id="pix-container">
-                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-bottom: 8px;">Chave Pix (CNPJ / Celular):</p>
-                    <p style="font-size: 1rem; font-weight: bold; color: var(--primary); background: #fff; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">48984696949</p>
-                    <small style="color: var(--gray);">Envie o comprovante no WhatsApp após finalizar o pedido.</small>
+                
+                <div id="pix-container" style="display: none; background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.9rem;">
+                    Você será redirecionado para o ambiente seguro do Mercado Pago para gerar o seu código Pix.
                 </div>
-
-                <!-- Área Cartão de Crédito -->
-                <div id="card-container">
-                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-bottom: 5px;">💳 Pagamento com Cartão</p>
-                    <p style="font-size: 0.85rem; color: var(--gray);">Você pode pagar com cartão de crédito via Maquininha na entrega ou solicitar link online.</p>
+                <div id="card-container" style="display: none; background: #e9ecef; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.9rem;">
+                    Você será redirecionado para o ambiente seguro do Mercado Pago para inserir os dados do cartão.
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar Pedido</button>
-                    <button type="button" onclick="fecharCheckout()" style="background-color: var(--gray); flex: 1;">Voltar</button>
+                    <button type="button" onclick="fecharCheckout()" style="background-color: #ccc; color: #333; flex: 1;">Voltar</button>
+                    <button type="submit" id="btn-enviar" style="flex: 2; background-color: #2b9348;">Confirmar Pedido</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        const produtos = [
-            { id: 1, nome: "Combo Hot Philadelphia (20p)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "img/hot.jpg" },
-            { id: 2, nome: "Barca Especial Sakura (40p)", desc: "Variedade de niguiris, uramakis e sashimis.", preco: 129.90, img: "img/barca.jpg" },
-            { id: 3, nome: "Temaki Salmão Completo", desc: "Cone de alga com arroz, salmão fresco e cream cheese.", preco: 26.50, img: "img/temaki.jpg" },
-            { id: 4, nome: "Uramaki Skin (10p)", desc: "Enrolado invertido de pele de salmão grelhada.", preco: 32.00, img: "img/uramaki.jpg" },
-            { id: 5, nome: "Sashimi de Salmão (10 fatias)", desc: "Fatias nobres de salmão fresco.", preco: 45.00, img: "img/sashimi.jpg" },
-            { id: 6, nome: "Joy de Salmão (6un)", desc: "Arroz envolvido em lâminas de salmão com ovas.", preco: 38.00, img: "img/joy.jpg" },
-            { id: 7, nome: "Hossomaki Pepino e Manga", desc: "Opção leve e refrescante.", preco: 22.00, img: "img/hossomaki.jpg" },
-            { id: 8, nome: "Gyosa de Frango (6un)", desc: "Pastelzinho oriental grelhado com frango.", preco: 28.00, img: "img/gyosa.jpg" },
-            { id: 9, nome: "Sunomono Tradicional", desc: "Salada de pepino japonês com gergelim e kani.", preco: 16.00, img: "img/sunomono.jpg" },
-            { id: 10, nome: "Combinado Executivo (15p)", desc: "Ideal para uma pessoa.", preco: 39.90, img: "img/executivo.jpg" }
-        ];
-
-        let carrinho = [];
-        let lojaAberta = false;
+        // ==========================================
+        // CONFIGURAÇÃO: Insira a URL do Google Script
+        // ==========================================
+        const GOOGLE_SCRIPT_URL = "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI"; 
         
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZ8BAR04yZQpGiyXv1VZwH60PE3RBWkX91EplCYspJqCna31ThNyRAqwBtQDa7vIDM/exec";
+        let carrinho = [];
 
-        function verificarHorario() {
-            const hora = new Date().getHours();
-            const statusBar = document.getElementById('status-bar');
-            if (hora >= 19 && hora < 23) {
-                lojaAberta = true;
-                statusBar.className = "status-bar open";
-                statusBar.innerHTML = "🟢 Aberto agora! Pedidos até as 23:00.";
+        // === LÓGICA DO CARRINHO ===
+        function adicionarAoCarrinho(id, nome, preco, img) {
+            const itemExistente = carrinho.find(item => item.id === id);
+            if (itemExistente) {
+                itemExistente.qtd += 1;
             } else {
-                lojaAberta = false;
-                statusBar.className = "status-bar closed";
-                statusBar.innerHTML = "🔴 Fechado. Funcionamento das 19:00 às 23:00.";
+                carrinho.push({ id, nome, preco, img, qtd: 1 });
             }
-            renderizarMenu();
-        }
-
-        function renderizarMenu() {
-            const grid = document.getElementById('menu-grid');
-            grid.innerHTML = "";
-            produtos.forEach(p => {
-                grid.innerHTML += `
-                    <div class="card">
-                        <img src="${p.img}" alt="${p.nome}" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400'">
-                        <div class="card-content">
-                            <div>
-                                <div class="card-title">${p.nome}</div>
-                                <div class="card-desc">${p.desc}</div>
-                            </div>
-                            <div class="card-footer">
-                                <span class="price">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
-                                <button onclick="adicionarAoCarrinho(${p.id})" ${!lojaAberta ? 'disabled' : ''}>
-                                    ${lojaAberta ? 'Adicionar' : 'Fechado'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function adicionarAoCarrinho(id) {
-            if (!lojaAberta) return alert("A loja está fechada no momento!");
-            const produto = produtos.find(item => item.id === id);
-            const itemCarrinho = carrinho.find(item => item.id === id);
-            if (itemCarrinho) { itemCarrinho.qtd++; } 
-            else { carrinho.push({ ...produto, qtd: 1 }); }
             atualizarCarrinhoUI();
         }
 
         function removerDoCarrinho(id) {
-            const index = carrinho.findIndex(item => item.id === id);
-            if (index !== -1) {
-                carrinho[index].qtd--;
-                if (carrinho[index].qtd <= 0) carrinho.splice(index, 1);
-            }
+            carrinho = carrinho.filter(item => item.id !== id);
             atualizarCarrinhoUI();
             abrirCheckout();
-            if (carrinho.length === 0) fecharCheckout();
         }
 
         function atualizarCarrinhoUI() {
@@ -234,28 +173,30 @@
                 cartTotal.innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
             } else {
                 cartFloat.style.display = "none";
+                fecharCheckout();
             }
         }
 
+        // === MODAL DE CHECKOUT ===
         function abrirCheckout() {
+            if (carrinho.length === 0) return;
             document.getElementById('checkout-modal').style.display = 'flex';
             const resumo = document.getElementById('resumo-carrinho');
-            if (carrinho.length === 0) { fecharCheckout(); return; }
 
             let html = "";
             carrinho.forEach(item => {
                 html += `
                     <div class="cart-item">
-                        <img src="${item.img}" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=100'">
+                        <img src="${item.img}" onerror="this.src='https://via.placeholder.com/50?text=Item'">
                         <div style="flex-grow:1;">
                             <strong>${item.qtd}x</strong> ${item.nome}<br>
                             <small>R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}</small>
                         </div>
-                        <button type="button" class="btn-remover" onclick="removerDoCarrinho(${item.id})">Excluir</button>
+                        <button type="button" class="btn-remover" onclick="removerDoCarrinho(${item.id})">Remover</button>
                     </div>`;
             });
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-            html += `<hr style="margin: 10px 0;"><div style="text-align: right; font-size: 1.05rem;"><strong>Total: R$ ${total.toFixed(2).replace('.', ',')}</strong></div>`;
+            html += `<hr style="margin: 10px 0;"><div style="text-align: right; font-size: 1.1rem; color: #2b9348;"><strong>Total: R$ ${total.toFixed(2).replace('.', ',')}</strong></div>`;
             resumo.innerHTML = html;
         }
 
@@ -265,17 +206,8 @@
 
         function tratarPagamento() {
             const pagamento = document.getElementById('pagamento').value;
-            const pixContainer = document.getElementById('pix-container');
-            const cardContainer = document.getElementById('card-container');
-
-            pixContainer.style.display = 'none';
-            cardContainer.style.display = 'none';
-
-            if (pagamento === 'Pix') {
-                pixContainer.style.display = 'block';
-            } else if (pagamento === 'Cartão de Crédito') {
-                cardContainer.style.display = 'block';
-            }
+            document.getElementById('pix-container').style.display = (pagamento === 'Pix') ? 'block' : 'none';
+            document.getElementById('card-container').style.display = (pagamento === 'Cartão de Crédito') ? 'block' : 'none';
         }
 
         function gerarNumeroPedido() {
@@ -285,65 +217,143 @@
             return `#${novo}`;
         }
 
+        // === FINALIZAÇÃO DO PEDIDO ===
         async function finalizarPedido(event) {
             event.preventDefault();
-            const numPedido = gerarNumeroPedido();
-            const nome = document.getElementById('nome').value;
-            const telefone = document.getElementById('telefone').value;
-            const endereco = document.getElementById('endereco').value;
-            const pagamento = document.getElementById('pagamento').value;
+            
+            const btnEnviar = document.getElementById('btn-enviar');
+            btnEnviar.innerText = "Processando...";
+            btnEnviar.disabled = true;
 
+            const numPedido = gerarNumeroPedido();
             let itensTexto = "";
             let carrinhoArrayParaEmail = [];
 
             carrinho.forEach(item => {
                 itensTexto += `${item.qtd}x ${item.nome} - R$ ${(item.preco * item.qtd).toFixed(2)}\n`;
+                
+                // Transforma o caminho 'img/...' em uma URL absoluta para o e-mail funcionar
+                let caminhoImagem = item.img;
+                if (!item.img.startsWith('http')) {
+                    const baseUrl = window.location.href.split('index.html')[0];
+                    caminhoImagem = baseUrl.endsWith('/') ? baseUrl + item.img : baseUrl + '/' + item.img;
+                }
+
                 carrinhoArrayParaEmail.push({
                     nome: item.nome,
                     qtd: item.qtd,
                     preco: item.preco,
-                    img: location.origin + '/' + item.img
+                    img: caminhoImagem
                 });
             });
 
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-
+            
             const dadosPedido = {
                 pedido: numPedido,
-                nome: nome,
-                telefone: telefone,
-                endereco: endereco,
-                pagamento: pagamento,
+                nome: document.getElementById('nome').value,
+                telefone: document.getElementById('telefone').value,
+                endereco: document.getElementById('endereco').value,
+                pagamento: document.getElementById('pagamento').value,
                 itens: itensTexto,
                 itensArray: carrinhoArrayParaEmail,
                 total: `R$ ${total.toFixed(2).replace('.', ',')}`
             };
 
-            // Envio para o Google Apps Script (para disparar o e-mail formatado com imagens)
+            if (dadosPedido.pagamento === 'Pix' || dadosPedido.pagamento === 'Cartão de Crédito') {
+                // Guarda o pedido em memória antes de redirecionar para o Mercado Pago
+                localStorage.setItem('pedido_pendente_mp', JSON.stringify(dadosPedido));
+                
+                // NOTA: Para testes locais sem o link real, basta simular o "?status=approved" na URL
+                const urlMercadoPago = "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=TESTE_SUBSTITUA_PELA_SUA_PREFERENCIA"; 
+                
+                alert("Simulando redirecionamento para o Mercado Pago...");
+                window.location.href = urlMercadoPago; 
+            } else {
+                // Caso pagamento seja em dinheiro, finaliza imediatamente
+                dispararNotificacoes(dadosPedido);
+            }
+        }
+
+        // === ENVIO DE E-MAIL E WHATSAPP ===
+        async function dispararNotificacoes(dadosPedido) {
             try {
+                // Requisição silenciosa para o Google Apps Script
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dadosPedido)
                 });
             } catch (e) {
-                console.log("Erro ao enviar email.");
+                console.error("Erro na comunicação com o Script:", e);
             }
 
-            let msgWhats = `🍣 *PEDIDO ${numPedido} - SAKURA SUSHI* 🍣\n\n`;
-            msgWhats += `*Cliente:* ${nome}\n*Telefone:* ${telefone}\n*Endereço:* ${endereco}\n*Pagamento:* ${pagamento}\n\n`;
-            msgWhats += `*ITENS:*\n${itensTexto}\n*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*`;
-
-            alert(`Pedido ${numPedido} confirmado! Redirecionando para o WhatsApp...`);
-            window.open(`https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(msgWhats)}`, '_blank');
+            let msgWhats = `🍣 *PEDIDO ${dadosPedido.pedido} - SAKURA SUSHI* 🍣\n\n`;
+            msgWhats += `*Cliente:* ${dadosPedido.nome}\n*Telefone:* ${dadosPedido.telefone}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n\n`;
+            msgWhats += `*ITENS:*\n${dadosPedido.itens}\n*TOTAL:* ${dadosPedido.total}`;
 
             carrinho = [];
             atualizarCarrinhoUI();
             fecharCheckout();
+            document.getElementById('form-pedido').reset();
+            document.getElementById('btn-enviar').innerText = "Confirmar Pedido";
+            document.getElementById('btn-enviar').disabled = false;
+            
+            alert(`Pedido ${dadosPedido.pedido} confirmado com sucesso! Enviando para o WhatsApp...`);
+            
+            // Substitua o número abaixo pelo WhatsApp de recebimento
+            window.location.href = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(msgWhats)}`;
         }
 
+        // === VERIFICADOR DE RETORNO DO MERCADO PAGO ===
+        function verificarRetornoPagamento() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusPagamento = urlParams.get('collection_status') || urlParams.get('status');
+            
+            if (statusPagamento === 'approved') {
+                const pedidoPendente = localStorage.getItem('pedido_pendente_mp');
+                if (pedidoPendente) {
+                    const dadosPedido = JSON.parse(pedidoPendente);
+                    dispararNotificacoes(dadosPedido);
+                    
+                    // Previne disparos duplicados
+                    localStorage.removeItem('pedido_pendente_mp');
+                    
+                    // Limpa a URL removendo os parâmetros do Mercado Pago
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+            } else if (statusPagamento === 'rejected' || statusPagamento === 'null') {
+                alert("O pagamento não foi concluído ou foi recusado. Por favor, tente novamente.");
+                localStorage.removeItem('pedido_pendente_mp');
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+        }
+
+        // === CONTROLE DE HORÁRIO (Opcional) ===
+        function verificarHorario() {
+            // O sistema não bloqueia totalmente para testes, mas você pode ativar abaixo
+            const horaAtual = new Date().getHours();
+            const statusLoja = document.getElementById('status-loja');
+            const botoesAdd = document.querySelectorAll('.produto button');
+            
+            // Exemplo: Aberto apenas entre 18h e 23h
+            /*
+            if (horaAtual >= 18 && horaAtual < 23) {
+                statusLoja.style.display = 'none';
+                botoesAdd.forEach(btn => btn.disabled = false);
+            } else {
+                statusLoja.style.display = 'block';
+                botoesAdd.forEach(btn => btn.disabled = true);
+            }
+            */
+        }
+
+        // === GATILHOS DE INICIALIZAÇÃO ===
         verificarHorario();
-        setInterval(verificarHorario, 60000);
+        setInterval(verificarHorario, 60000); // Atualiza status da loja a cada minuto
+        window.onload = verificarRetornoPagamento; // Checa se é um retorno pós-pagamento
+
     </script>
 </body>
 </html>
