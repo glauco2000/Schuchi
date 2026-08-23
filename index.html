@@ -61,7 +61,7 @@
         .cart-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 12px; }
         .btn-remover { background-color: var(--danger); padding: 5px 10px; font-size: 0.75rem; border-radius: 4px; }
         
-        #pix-container { text-align: center; margin: 15px 0; display: none; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px dashed #ddd; }
+        #pix-container, #card-container { text-align: center; margin: 15px 0; display: none; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px dashed #ddd; }
         #qrcode-pix { display: inline-block; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 6px; margin-top: 8px; }
 
         @media (max-width: 480px) {
@@ -93,6 +93,7 @@
         <button onclick="abrirCheckout()">Ver Carrinho</button>
     </div>
 
+    <!-- Modal de Checkout -->
     <div class="modal" id="checkout-modal">
         <div class="modal-content">
             <h2>Finalizar Pedido</h2>
@@ -115,17 +116,23 @@
                     <label>Forma de Pagamento:</label>
                     <select id="pagamento" required onchange="tratarPagamento()">
                         <option value="">Selecione...</option>
-                        <option value="Pix Mercado Pago">Pix Dinâmico (Mercado Pago)</option>
+                        <option value="Pix">Pix (Chave / QR Code)</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito (Online / Maquininha)</option>
                         <option value="Dinheiro">Dinheiro na Entrega (Levar Troco)</option>
                     </select>
                 </div>
 
+                <!-- Área Pix Manual / Copia e Cola Segura -->
                 <div id="pix-container">
-                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--success);" id="pix-status-msg">Gerando QR Code Pix oficial...</p>
-                    <div id="qrcode-pix"></div>
-                    <br>
-                    <textarea id="copia-cola-pix" style="width: 100%; height: 60px; font-size: 0.75rem; margin-top: 8px; padding: 5px;" readonly></textarea>
-                    <button type="button" onclick="copiarPixCopiaECola()" style="background: var(--success); font-size: 0.8rem; padding: 6px 12px; margin-top: 5px;">Copiar Pix Copia e Cola</button>
+                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-bottom: 8px;">Chave Pix (CNPJ / Celular):</p>
+                    <p style="font-size: 1rem; font-weight: bold; color: var(--primary); background: #fff; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">48984696949</p>
+                    <small style="color: var(--gray);">Envie o comprovante no WhatsApp após finalizar o pedido.</small>
+                </div>
+
+                <!-- Área Cartão de Crédito -->
+                <div id="card-container">
+                    <p style="font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-bottom: 5px;">💳 Pagamento com Cartão</p>
+                    <p style="font-size: 0.85rem; color: var(--gray);">Você pode pagar com cartão de crédito via Maquininha na entrega ou solicitar link online.</p>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -153,7 +160,6 @@
         let carrinho = [];
         let lojaAberta = false;
         
-        const MP_ACCESS_TOKEN = "APP_USR-2801807542016839-082318-c55e0f08f6dc8f6a7c0c0146edb18e0b-15664388";
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZ8BAR04yZQpGiyXv1VZwH60PE3RBWkX91EplCYspJqCna31ThNyRAqwBtQDa7vIDM/exec";
 
         function verificarHorario() {
@@ -257,61 +263,19 @@
             document.getElementById('checkout-modal').style.display = 'none';
         }
 
-        async function tratarPagamento() {
+        function tratarPagamento() {
             const pagamento = document.getElementById('pagamento').value;
             const pixContainer = document.getElementById('pix-container');
-            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
+            const cardContainer = document.getElementById('card-container');
 
-            if (pagamento === 'Pix Mercado Pago') {
+            pixContainer.style.display = 'none';
+            cardContainer.style.display = 'none';
+
+            if (pagamento === 'Pix') {
                 pixContainer.style.display = 'block';
-                document.getElementById('qrcode-pix').innerHTML = "";
-                document.getElementById('pix-status-msg').innerText = "Gerando QR Code Pix oficial no Mercado Pago...";
-
-                const nomeCliente = document.getElementById('nome').value || "Cliente Sakura";
-                
-                try {
-                    const resposta = await fetch('https://api.mercadopago.com/v1/payments', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            transaction_amount: parseFloat(total.toFixed(2)),
-                            description: "Pedido Sakura Sushi Delivery",
-                            payment_method_id: "pix",
-                            payer: {
-                                email: "tropasc@gmail.com",
-                                first_name: nomeCliente
-                            }
-                        })
-                    });
-
-                    const dados = await resposta.json();
-                    
-                    if (dados.point_of_interaction) {
-                        const qrCodeBase64 = dados.point_of_interaction.transaction_data.qr_code_base64;
-                        const copiaECola = dados.point_of_interaction.transaction_data.qr_code;
-
-                        document.getElementById('qrcode-pix').innerHTML = `<img src="data:image/png;base64,${qrCodeBase64}" width="150" height="150">`;
-                        document.getElementById('copia-cola-pix').value = copiaECola;
-                        document.getElementById('pix-status-msg').innerText = "Escaneie o QR Code ou copie o código abaixo:";
-                    } else {
-                        document.getElementById('pix-status-msg').innerText = "Erro ao gerar Pix automático. Selecione Dinheiro ou tente novamente.";
-                    }
-                } catch (e) {
-                    document.getElementById('pix-status-msg').innerText = "Erro de conexão com o Mercado Pago.";
-                }
-            } else {
-                pixContainer.style.display = 'none';
+            } else if (pagamento === 'Cartão de Crédito') {
+                cardContainer.style.display = 'block';
             }
-        }
-
-        function copiarPixCopiaECola() {
-            const copyText = document.getElementById("copia-cola-pix");
-            copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            alert("Código Pix Copia e Cola copiado com sucesso!");
         }
 
         function gerarNumeroPedido() {
