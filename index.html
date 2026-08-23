@@ -12,7 +12,7 @@
             --gray: #6c757d;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--light); color: var(--dark); padding-bottom: 80px; }
+        body { background-color: var(--light); color: var(--dark); padding-bottom: 90px; }
         
         header { background-color: var(--dark); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--primary); }
         header h1 { font-size: 1.8rem; margin-bottom: 5px; }
@@ -25,7 +25,7 @@
         
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
-        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .card img { width: 100%; height: 160px; object-fit: cover; background-color: #eee; }
         .card-content { padding: 15px; }
         .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
         .card-desc { font-size: 0.85rem; color: var(--gray); margin-bottom: 12px; }
@@ -45,7 +45,10 @@
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid #f1f1f1; padding-bottom: 5px; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid #f1f1f1; padding-bottom: 8px; }
+        .cart-item-info { flex-grow: 1; margin-right: 10px; }
+        .btn-remover { background-color: #ae2012; padding: 4px 8px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -60,22 +63,20 @@
     <div class="container">
         <h2>Cardápio de Pratos</h2>
         <br>
-        <div class="menu-grid" id="menu-grid">
-            <!-- Os pratos serão injetados via JavaScript para fácil edição -->
-        </div>
+        <div class="menu-grid" id="menu-grid"></div>
     </div>
 
     <div class="cart-float" id="cart-float" style="display: none;">
         <div>
             <span id="cart-count">0</span> itens | Total: <strong id="cart-total">R$ 0,00</strong>
         </div>
-        <button onclick="abrirCheckout()">Finalizar Pedido</button>
+        <button onclick="abrirCheckout()">Ver Carrinho / Finalizar</button>
     </div>
 
     <!-- Modal de Checkout -->
     <div class="modal" id="checkout-modal">
         <div class="modal-content">
-            <h2>Finalizar Pedido</h2>
+            <h2>Seu Carrinho & Pedido</h2>
             <div id="resumo-carrinho"></div>
             <br>
             <form id="order-form" onsubmit="enviarPedido(event)">
@@ -89,50 +90,56 @@
                 </div>
                 <div class="form-group">
                     <label>Endereço Completo de Entrega:</label>
-                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Complemento">
+                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Ponto de Referência">
                 </div>
                 <div class="form-group">
                     <label>Forma de Pagamento:</label>
-                    <select id="pagamento" required>
+                    <select id="pagamento" required onchange="mudarFormaPagamento()">
                         <option value="">Selecione...</option>
-                        <option value="Pix (Chave da Loja)">Pix (Aprovação Imediata)</option>
-                        <option value="Cartão na Entrega">Cartão na Entrega (Maquininha)</option>
-                        <option value="Dinheiro na Entrega">Dinheiro (Informar Troco)</option>
+                        <option value="Pix (Telefone)">Pix (Chave Telefone da Loja)</option>
+                        <option value="Mercado Pago (Cartão/Pix Online)">Cartão ou Pix Online (Mercado Pago)</option>
+                        <option value="Dinheiro na Entrega">Dinheiro na Entrega (Levar Troco)</option>
                     </select>
                 </div>
+
+                <!-- Bloco de instrução para Pix Telefone -->
+                <div id="info-pix" style="display:none; background: #e9ecef; padding: 10px; border-radius: 5px; font-size: 0.85rem; margin-bottom: 15px;">
+                    ℹ️ Chave Pix (Celular): <strong>(48) 984696949</strong><br>
+                    Faça o PIX do valor exato e envie o comprovante no WhatsApp que abrirá a seguir.
+                </div>
+
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar Pedido</button>
-                    <button type="button" onclick="fecharCheckout()" style="background-color: var(--gray); flex: 1;">Cancelar</button>
+                    <button type="submit" id="btn-enviar" style="flex: 2;">Finalizar Pedido via WhatsApp</button>
+                    <button type="button" onclick="fecharCheckout()" style="background-color: var(--gray); flex: 1;">Voltar</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // --- 1. CARDÁPIO EDITÁVEL (Altere fotos, nomes e valores aqui facilmente) ---
+        // --- 1. CARDÁPIO COM FOTOS LOCAIS NA PASTA img/ ---
         const produtos = [
-            { id: 1, nome: "Combo Hot Philadelphia (20 peças)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=400" },
-            { id: 2, nome: "Barca Especial Sakura (40 peças)", desc: "Variedade de niguiris, uramakis, hossomakis e sashimis.", preco: 129.90, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400" },
-            { id: 3, nome: "Temaki Salmão Completo", desc: "Cone de alga recheado com arroz, salmão fresco e cream cheese.", preco: 26.50, img: "https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=400" },
-            { id: 4, nome: "Uramaki Skin (10 peças)", desc: "Enrolado invertido de pele de salmão grelhada com molho tare.", preco: 32.00, img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=400" },
-            { id: 5, nome: "Sashimi de Salmão (10 fatias)", desc: "Fatias nobres de salmão fresco cortadas milimetricamente.", preco: 45.00, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400" },
-            { id: 6, nome: "Joy de Salmão (6 unidades)", desc: "Arroz envolvido em lâminas de salmão com cream cheese e ovas.", preco: 38.00, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400" },
-            { id: 7, nome: "Hossomaki Pepino e Manga (10 un)", desc: "Opção leve e refrescante enrolada em alga por fora.", preco: 22.00, img: "https://images.unsplash.com/photo-1615361200141-f45040f367be?w=400" },
-            { id: 8, nome: "Gyosa de Frango (6 unidades)", desc: "Pastelzinho oriental cozido e grelhado recheado com frango e legumes.", preco: 28.00, img: "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400" },
-            { id: 9, nome: "Sunomono Tradicional", desc: "Salada de pepino japonês fatiado com gergelim e kani.", preco: 16.00, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" },
-            { id: 10, nome: "Combinado Executivo (15 peças)", desc: "Ideal para uma pessoa. Variedade leve e saborosa.", preco: 39.90, img: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400" }
+            { id: 1, nome: "Combo Hot Philadelphia (20 peças)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "img/philadelphia.jpg" },
+            { id: 2, nome: "Barca Especial Sakura (40 peças)", desc: "Variedade de niguiris, uramakis, hossomakis e sashimis.", preco: 129.90, img: "img/barca-especial.jpg" },
+            { id: 3, nome: "Temaki Salmão Completo", desc: "Cone de alga recheado com arroz, salmão fresco e cream cheese.", preco: 26.50, img: "img/temaki-salmao.jpg" },
+            { id: 4, nome: "Uramaki Skin (10 peças)", desc: "Enrolado invertido de pele de salmão grelhada com molho tare.", preco: 32.00, img: "img/uramaki-skin.jpg" },
+            { id: 5, nome: "Sashimi de Salmão (10 fatias)", desc: "Fatias nobres de salmão fresco cortadas milimetricamente.", preco: 45.00, img: "img/sashimi-salmao.jpg" },
+            { id: 6, nome: "Joy de Salmão (6 unidades)", desc: "Arroz envolvido em lâminas de salmão com cream cheese e ovas.", preco: 38.00, img: "img/joy-salmao.jpg" },
+            { id: 7, nome: "Hossomaki Pepino e Manga (10 un)", desc: "Opção leve e refrescante enrolada em alga por fora.", preco: 22.00, img: "img/hossomaki.jpg" },
+            { id: 8, nome: "Gyosa de Frango (6 unidades)", desc: "Pastelzinho oriental cozido e grelhado recheado com frango e legumes.", preco: 28.00, img: "img/gyosa.jpg" },
+            { id: 9, nome: "Sunomono Tradicional", desc: "Salada de pepino japonês fatiado com gergelim e kani.", preco: 16.00, img: "img/sunomono.jpg" },
+            { id: 10, nome: "Combinado Executivo (15 peças)", desc: "Ideal para uma pessoa. Variedade leve e saborosa.", preco: 39.90, img: "img/combinado-executivo.jpg" }
         ];
 
         let carrinho = [];
         let lojaAberta = false;
 
-        // --- 2. VERIFICAR HORÁRIO DE FUNCIONAMENTO (19:00 às 23:00) ---
         function verificarHorario() {
             const agora = new Date();
             const hora = agora.getHours();
             const statusBar = document.getElementById('status-bar');
 
-            // Das 19h (19) até as 23h (23)
+            // Aberto das 19h às 23h
             if (hora >= 19 && hora < 23) {
                 lojaAberta = true;
                 statusBar.className = "status-bar open";
@@ -140,12 +147,11 @@
             } else {
                 lojaAberta = false;
                 statusBar.className = "status-bar closed";
-                statusBar.innerHTML = "🔴 Fechado no momento. Funcionamento das 19:00 às 23:00.";
+                statusBar.innerHTML = "🔴 Fechado no momento. Horário de atendimento: 19:00 às 23:00.";
             }
             renderizarMenu();
         }
 
-        // --- 3. RENDERIZAR CARDÁPIO ---
         function renderizarMenu() {
             const grid = document.getElementById('menu-grid');
             grid.innerHTML = "";
@@ -153,7 +159,7 @@
             produtos.forEach(p => {
                 grid.innerHTML += `
                     <div class="card">
-                        <img src="${p.img}" alt="${p.nome}">
+                        <img src="${p.img}" alt="${p.nome}" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400'">
                         <div class="card-content">
                             <div class="card-title">${p.nome}</div>
                             <div class="card-desc">${p.desc}</div>
@@ -169,7 +175,6 @@
             });
         }
 
-        // --- 4. CONTROLE DO CARRINHO ---
         function adicionarAoCarrinho(id) {
             if (!lojaAberta) return alert("A loja está fechada no momento!");
             const produto = produtos.find(item => item.id === id);
@@ -181,6 +186,22 @@
                 carrinho.push({ ...produto, qtd: 1 });
             }
             atualizarCarrinhoUI();
+        }
+
+        // Função para remover ou diminuir item do carrinho
+        function removerDoCarrinho(id) {
+            const index = carrinho.findIndex(item => item.id === id);
+            if (index !== -1) {
+                carrinho[index].qtd--;
+                if (carrinho[index].qtd <= 0) {
+                    carrinho.splice(index, 1);
+                }
+            }
+            atualizarCarrinhoUI();
+            abrirCheckout(); // Atualiza a visualização do modal
+            if (carrinho.length === 0) {
+                fecharCheckout();
+            }
         }
 
         function atualizarCarrinhoUI() {
@@ -204,12 +225,24 @@
             document.getElementById('checkout-modal').style.display = 'flex';
             const resumo = document.getElementById('resumo-carrinho');
             
-            let html = "<b>Itens selecionados:</b><br><br>";
+            if (carrinho.length === 0) {
+                fecharCheckout();
+                return;
+            }
+
+            let html = "";
             carrinho.forEach(item => {
-                html += `<div class="cart-item"><span>${item.qtd}x ${item.nome}</span> <span>R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}</span></div>`;
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <strong>${item.qtd}x</strong> ${item.nome}<br>
+                            <small>R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}</small>
+                        </div>
+                        <button type="button" class="btn-remover" onclick="removerDoCarrinho(${item.id})">Excluir</button>
+                    </div>`;
             });
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-            html += `<hr style="margin: 10px 0;"><br><strong>Total a pagar: R$ ${total.toFixed(2).replace('.', ',')}</strong>`;
+            html += `<hr style="margin: 10px 0;"><div style="text-align: right;"><strong>Total: R$ ${total.toFixed(2).replace('.', ',')}</strong></div>`;
             resumo.innerHTML = html;
         }
 
@@ -217,7 +250,16 @@
             document.getElementById('checkout-modal').style.display = 'none';
         }
 
-        // --- 5. ENVIO DE PEDIDO POR E-MAIL E WHATSAPP ---
+        function mudarFormaPagamento() {
+            const pagamento = document.getElementById('pagamento').value;
+            const infoPix = document.getElementById('info-pix');
+            if (pagamento.includes('Pix')) {
+                infoPix.style.display = 'block';
+            } else {
+                infoPix.style.display = 'none';
+            }
+        }
+
         function enviarPedido(event) {
             event.preventDefault();
             const nome = document.getElementById('nome').value;
@@ -225,37 +267,34 @@
             const endereco = document.getElementById('endereco').value;
             const pagamento = document.getElementById('pagamento').value;
 
-            let detalhesPedido = `NOVO PEDIDO - SAKURA SUSHI\n\n`;
-            detalhesPedido += `Cliente: ${nome}\n`;
-            detalhesPedido += `Telefone: ${telefone}\n`;
-            detalhesPedido += `Endereço: ${endereco}\n`;
-            detalhesPedido += `Forma de Pagamento: ${pagamento}\n\n`;
-            detalhesPedido += `ITENS:\n`;
+            let detalhesPedido = `🍣 *NOVO PEDIDO - SAKURA SUSHI* 🍣\n\n`;
+            detalhesPedido += `*Cliente:* ${nome}\n`;
+            detalhesPedido += `*Telefone:* ${telefone}\n`;
+            detalhesPedido += `*Endereço:* ${endereco}\n`;
+            detalhesPedido += `*Pagamento:* ${pagamento}\n\n`;
+            detalhesPedido += `*ITENS DO PEDIDO:*\n`;
 
             carrinho.forEach(item => {
-                detalhesPedido += `- ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
+                detalhesPedido += `• ${item.qtd}x ${item.nome} - R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}\n`;
             });
 
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-            detalhesPedido += `\nTOTAL: R$ ${total.toFixed(2)}`;
+            detalhesPedido += `\n*TOTAL A PAGAR: R$ ${total.toFixed(2).replace('.', ',')}*`;
 
-            // Como solução prática e imediata para envio por e-mail e WhatsApp simultâneo:
-            // Geramos um link do WhatsApp com o pedido formatado para você receber no seu celular,
-            // e para o e-mail, podemos plugar ferramentas gratuitas como Web3Forms.
-            const urlWhatsApp = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(detalhesPedido)}`;
+            // Substitua o número abaixo pelo seu WhatsApp corporativo (ex: 48999999999)
+            const seuNumeroWhatsApp = "5548984696949"; 
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${seuNumeroWhatsApp}&text=${encodeURIComponent(detalhesPedido)}`;
             
-            alert("Pedido gerado com sucesso! Você será redirecionado para concluir o envio.");
+            alert("Pedido confirmado! Redirecionando para o WhatsApp do estabelecimento...");
             window.open(urlWhatsApp, '_blank');
             
-            // Limpa o carrinho
             carrinho = [];
             atualizarCarrinhoUI();
             fecharCheckout();
         }
 
-        // Inicializar verificação
         verificarHorario();
-        setInterval(verificarHorario, 60000); // Checa a cada 1 minuto se deu 19h ou fechou 23h
+        setInterval(verificarHorario, 60000);
     </script>
 </body>
 </html>
