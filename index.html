@@ -4,69 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakura Sushi Delivery</title>
-    <!-- Biblioteca para gerar o QR Code do Pix dinamicamente -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --primary: #d90429;
+            --primary-hover: #b50322;
             --dark: #1b1b1b;
             --light: #f8f9fa;
             --gray: #6c757d;
+            --success: #2b9348;
+            --danger: #ae2012;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--light); color: var(--dark); padding-bottom: 90px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--light); color: var(--dark); padding-bottom: 100px; -webkit-font-smoothing: antialiased; }
         
-        header { background-color: var(--dark); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--primary); }
-        header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        header { background-color: var(--dark); color: white; padding: 25px 15px; text-align: center; border-bottom: 4px solid var(--primary); }
+        header h1 { font-size: 2rem; margin-bottom: 5px; font-weight: 700; }
+        header p { font-size: 0.95rem; color: #ccc; }
         
-        .status-bar { padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; }
-        .open { background-color: #2b9348; color: white; }
-        .closed { background-color: #ae2012; color: white; }
+        .status-bar { padding: 12px; text-align: center; font-weight: 600; font-size: 0.9rem; }
+        .open { background-color: var(--success); color: white; }
+        .closed { background-color: var(--danger); color: white; }
 
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        .container { max-width: 1200px; margin: 25px auto; padding: 0 15px; }
+        h2.section-title { font-size: 1.5rem; margin-bottom: 20px; color: var(--dark); border-left: 5px solid var(--primary); padding-left: 10px; }
         
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
-        .card img { width: 100%; height: 160px; object-fit: cover; background-color: #eee; }
-        .card-content { padding: 15px; }
-        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
-        .card-desc { font-size: 0.85rem; color: var(--gray); margin-bottom: 12px; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border-top: 1px solid #eee; }
-        .price { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-3px); }
+        .card img { width: 100%; height: 170px; object-fit: cover; background-color: #eee; }
+        .card-content { padding: 18px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: var(--dark); }
+        .card-desc { font-size: 0.85rem; color: var(--gray); margin-bottom: 15px; line-height: 1.4; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #f1f1f1; }
+        .price { font-size: 1.15rem; font-weight: 700; color: var(--primary); }
         
-        button { background-color: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        button:hover { opacity: 0.9; }
-        button:disabled { background-color: var(--gray); cursor: not-allowed; }
+        button { background-color: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: var(--gray); cursor: not-allowed; opacity: 0.7; }
 
-        .cart-float { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); z-index: 100; }
+        .cart-float { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -4px 15px rgba(0,0,0,0.25); z-index: 100; backdrop-filter: blur(5px); }
+        .cart-float div { font-size: 1rem; }
+        .cart-float strong { color: #ffD166; font-size: 1.1rem; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 200; }
-        .modal-content { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 8px; max-height: 90vh; overflow-y: auto; }
-        .modal-content h2 { margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 200; padding: 10px; }
+        .modal-content { background: white; width: 100%; max-width: 550px; padding: 25px; border-radius: 14px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-content h2 { margin-bottom: 15px; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; font-size: 1.3rem; }
+        
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #444; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; outline: none; transition: border 0.2s; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
         
-        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid #f1f1f1; padding-bottom: 8px; }
-        .cart-item img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; margin-right: 10px; }
-        .btn-remover { background-color: #ae2012; padding: 4px 8px; font-size: 0.8rem; }
+        .cart-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; border-bottom: 1px solid #f1f1f1; padding-bottom: 10px; }
+        .cart-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 12px; }
+        .btn-remover { background-color: var(--danger); padding: 5px 10px; font-size: 0.75rem; border-radius: 4px; }
         
-        #qrcode-container { text-align: center; margin: 15px 0; display: none; }
-        #qrcode { display: inline-block; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 4px; }
+        #pix-container { text-align: center; margin: 15px 0; display: none; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px dashed #ddd; }
+        #qrcode-pix { display: inline-block; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 6px; margin-top: 8px; }
+
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.6rem; }
+            .container { padding: 0 10px; margin: 15px auto; }
+            .modal-content { padding: 15px; }
+            .cart-float { padding: 12px 15px; }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>🍣 Sakura Sushi</h1>
-        <p>O melhor sushi da cidade entregue na sua casa</p>
+        <p>O melhor sushi da cidade entregue na sua porta</p>
     </header>
 
     <div id="status-bar" class="status-bar">Verificando horário...</div>
 
     <div class="container">
-        <h2>Cardápio de Pratos</h2>
-        <br>
+        <h2 class="section-title">Nosso Cardápio</h2>
         <div class="menu-grid" id="menu-grid"></div>
     </div>
 
@@ -74,55 +90,46 @@
         <div>
             <span id="cart-count">0</span> itens | Total: <strong id="cart-total">R$ 0,00</strong>
         </div>
-        <button onclick="abrirCheckout()">Ver Carrinho / Finalizar</button>
+        <button onclick="abrirCheckout()">Ver Carrinho</button>
     </div>
 
-    <!-- Modal de Checkout -->
     <div class="modal" id="checkout-modal">
         <div class="modal-content">
             <h2>Finalizar Pedido</h2>
             <div id="resumo-carrinho"></div>
             <br>
             <form id="order-form" onsubmit="finalizarPedido(event)">
-                <!-- Configuração do Web3Forms para enviar direto para o seu e-mail -->
-                <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_KEY">
-                <input type="hidden" name="subject" id="email-subject" value="Novo Pedido Sakura Sushi">
-
                 <div class="form-group">
-                    <label>Seu Nome:</label>
-                    <input type="text" id="nome" name="nome" required placeholder="Ex: João da Silva">
+                    <label>Seu Nome Completo:</label>
+                    <input type="text" id="nome" required placeholder="Ex: Maria Oliveira">
                 </div>
                 <div class="form-group">
                     <label>Telefone / WhatsApp:</label>
-                    <input type="text" id="telefone" name="telefone" required placeholder="(48) 99999-9999">
+                    <input type="text" id="telefone" required placeholder="(48) 99999-9999">
                 </div>
                 <div class="form-group">
                     <label>Endereço Completo de Entrega:</label>
-                    <input type="text" id="endereco" name="endereco" required placeholder="Rua, Número, Bairro, Complemento">
+                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Complemento">
                 </div>
                 <div class="form-group">
                     <label>Forma de Pagamento:</label>
-                    <select id="pagamento" name="pagamento" required onchange="tratarPagamento()">
+                    <select id="pagamento" required onchange="tratarPagamento()">
                         <option value="">Selecione...</option>
-                        <option value="Pix">Pix (QR Code na tela - Chave: 48984696949)</option>
-                        <option value="Mercado Pago Cartao">Cartão de Crédito (Mercado Pago)</option>
+                        <option value="Pix Mercado Pago">Pix Dinâmico (Mercado Pago)</option>
                         <option value="Dinheiro">Dinheiro na Entrega (Levar Troco)</option>
                     </select>
                 </div>
 
-                <!-- Campo oculto para o resumo detalhado ir no e-mail -->
-                <input type="hidden" id="detalhes_pedido_input" name="detalhes_do_pedido">
-
-                <!-- Área onde o QR Code do Pix aparece se escolhido -->
-                <div id="qrcode-container">
-                    <p style="font-size: 0.85rem; margin-bottom: 5px; font-weight: bold; color: #2b9348;">Escaneie o QR Code abaixo com seu banco:</p>
-                    <div id="qrcode"></div>
+                <div id="pix-container">
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--success);" id="pix-status-msg">Gerando QR Code Pix oficial...</p>
+                    <div id="qrcode-pix"></div>
                     <br>
-                    <button type="button" onclick="copiarChavePix()" style="background: #2b9348; font-size: 0.8rem; padding: 5px 10px;">Copiar Chave Pix (Telefone)</button>
+                    <textarea id="copia-cola-pix" style="width: 100%; height: 60px; font-size: 0.75rem; margin-top: 8px; padding: 5px;" readonly></textarea>
+                    <button type="button" onclick="copiarPixCopiaECola()" style="background: var(--success); font-size: 0.8rem; padding: 6px 12px; margin-top: 5px;">Copiar Pix Copia e Cola</button>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar e Enviar Pedido</button>
+                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar Pedido</button>
                     <button type="button" onclick="fecharCheckout()" style="background-color: var(--gray); flex: 1;">Voltar</button>
                 </div>
             </form>
@@ -131,32 +138,31 @@
 
     <script>
         const produtos = [
-            { id: 1, nome: "Combo Hot Philadelphia (20p)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "img/philadelphia.jpg" },
-            { id: 2, nome: "Barca Especial Sakura (40p)", desc: "Variedade de niguiris, uramakis e sashimis.", preco: 129.90, img: "img/barca-especial.jpg" },
-            { id: 3, nome: "Temaki Salmão Completo", desc: "Cone de alga com arroz, salmão fresco e cream cheese.", preco: 26.50, img: "img/temaki-salmao.jpg" },
-            { id: 4, nome: "Uramaki Skin (10p)", desc: "Enrolado invertido de pele de salmão grelhada.", preco: 32.00, img: "img/uramaki-skin.jpg" },
-            { id: 5, nome: "Sashimi de Salmão (10 fatias)", desc: "Fatias nobres de salmão fresco.", preco: 45.00, img: "img/sashimi-salmao.jpg" },
-            { id: 6, nome: "Joy de Salmão (6un)", desc: "Arroz envolvido em lâminas de salmão com ovas.", preco: 38.00, img: "img/joy-salmao.jpg" },
+            { id: 1, nome: "Combo Hot Philadelphia (20p)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "img/hot.jpg" },
+            { id: 2, nome: "Barca Especial Sakura (40p)", desc: "Variedade de niguiris, uramakis e sashimis.", preco: 129.90, img: "img/barca.jpg" },
+            { id: 3, nome: "Temaki Salmão Completo", desc: "Cone de alga com arroz, salmão fresco e cream cheese.", preco: 26.50, img: "img/temaki.jpg" },
+            { id: 4, nome: "Uramaki Skin (10p)", desc: "Enrolado invertido de pele de salmão grelhada.", preco: 32.00, img: "img/uramaki.jpg" },
+            { id: 5, nome: "Sashimi de Salmão (10 fatias)", desc: "Fatias nobres de salmão fresco.", preco: 45.00, img: "img/sashimi.jpg" },
+            { id: 6, nome: "Joy de Salmão (6un)", desc: "Arroz envolvido em lâminas de salmão com ovas.", preco: 38.00, img: "img/joy.jpg" },
             { id: 7, nome: "Hossomaki Pepino e Manga", desc: "Opção leve e refrescante.", preco: 22.00, img: "img/hossomaki.jpg" },
             { id: 8, nome: "Gyosa de Frango (6un)", desc: "Pastelzinho oriental grelhado com frango.", preco: 28.00, img: "img/gyosa.jpg" },
             { id: 9, nome: "Sunomono Tradicional", desc: "Salada de pepino japonês com gergelim e kani.", preco: 16.00, img: "img/sunomono.jpg" },
-            { id: 10, nome: "Combinado Executivo (15p)", desc: "Ideal para uma pessoa.", preco: 39.90, img: "img/combinado-executiv.jpg" }
+            { id: 10, nome: "Combinado Executivo (15p)", desc: "Ideal para uma pessoa.", preco: 39.90, img: "img/executivo.jpg" }
         ];
 
         let carrinho = [];
         let lojaAberta = false;
-        let qrCodeInstance = null;
+        
+        const MP_ACCESS_TOKEN = "APP_USR-2801807542016839-082318-c55e0f08f6dc8f6a7c0c0146edb18e0b-15664388";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwZ8BAR04yZQpGiyXv1VZwH60PE3RBWkX91EplCYspJqCna31ThNyRAqwBtQDa7vIDM/exec";
 
         function verificarHorario() {
-            const agora = new Date();
-            const hora = agora.getHours();
+            const hora = new Date().getHours();
             const statusBar = document.getElementById('status-bar');
-
-            // 19h às 23h
             if (hora >= 19 && hora < 23) {
                 lojaAberta = true;
                 statusBar.className = "status-bar open";
-                statusBar.innerHTML = "🟢 Aberto agora! Entregas até as 23:00.";
+                statusBar.innerHTML = "🟢 Aberto agora! Pedidos até as 23:00.";
             } else {
                 lojaAberta = false;
                 statusBar.className = "status-bar closed";
@@ -173,14 +179,16 @@
                     <div class="card">
                         <img src="${p.img}" alt="${p.nome}" onerror="this.src='https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400'">
                         <div class="card-content">
-                            <div class="card-title">${p.nome}</div>
-                            <div class="card-desc">${p.desc}</div>
-                        </div>
-                        <div class="card-footer">
-                            <span class="price">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
-                            <button onclick="adicionarAoCarrinho(${p.id})" ${!lojaAberta ? 'disabled' : ''}>
-                                ${lojaAberta ? 'Adicionar' : 'Fechado'}
-                            </button>
+                            <div>
+                                <div class="card-title">${p.nome}</div>
+                                <div class="card-desc">${p.desc}</div>
+                            </div>
+                            <div class="card-footer">
+                                <span class="price">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
+                                <button onclick="adicionarAoCarrinho(${p.id})" ${!lojaAberta ? 'disabled' : ''}>
+                                    ${lojaAberta ? 'Adicionar' : 'Fechado'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -191,11 +199,8 @@
             if (!lojaAberta) return alert("A loja está fechada no momento!");
             const produto = produtos.find(item => item.id === id);
             const itemCarrinho = carrinho.find(item => item.id === id);
-            if (itemCarrinho) {
-                itemCarrinho.qtd++;
-            } else {
-                carrinho.push({ ...produto, qtd: 1 });
-            }
+            if (itemCarrinho) { itemCarrinho.qtd++; } 
+            else { carrinho.push({ ...produto, qtd: 1 }); }
             atualizarCarrinhoUI();
         }
 
@@ -244,7 +249,7 @@
                     </div>`;
             });
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-            html += `<hr style="margin: 10px 0;"><div style="text-align: right;"><strong>Total: R$ ${total.toFixed(2).replace('.', ',')}</strong></div>`;
+            html += `<hr style="margin: 10px 0;"><div style="text-align: right; font-size: 1.05rem;"><strong>Total: R$ ${total.toFixed(2).replace('.', ',')}</strong></div>`;
             resumo.innerHTML = html;
         }
 
@@ -252,36 +257,68 @@
             document.getElementById('checkout-modal').style.display = 'none';
         }
 
-        function tratarPagamento() {
+        async function tratarPagamento() {
             const pagamento = document.getElementById('pagamento').value;
-            const qrContainer = document.getElementById('qrcode-container');
+            const pixContainer = document.getElementById('pix-container');
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
 
-            if (pagamento === 'Pix') {
-                qrContainer.style.display = 'block';
-                document.getElementById('qrcode').innerHTML = "";
+            if (pagamento === 'Pix Mercado Pago') {
+                pixContainer.style.display = 'block';
+                document.getElementById('qrcode-pix').innerHTML = "";
+                document.getElementById('pix-status-msg').innerText = "Gerando QR Code Pix oficial no Mercado Pago...";
+
+                const nomeCliente = document.getElementById('nome').value || "Cliente Sakura";
                 
-                const dadosPix = `Chave Pix: 48984696949 | Valor: R$ ${total.toFixed(2)}`;
-                qrCodeInstance = new QRCode(document.getElementById("qrcode"), {
-                    text: dadosPix,
-                    width: 150,
-                    height: 150
-                });
+                try {
+                    const resposta = await fetch('https://api.mercadopago.com/v1/payments', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            transaction_amount: parseFloat(total.toFixed(2)),
+                            description: "Pedido Sakura Sushi Delivery",
+                            payment_method_id: "pix",
+                            payer: {
+                                email: "tropasc@gmail.com",
+                                first_name: nomeCliente
+                            }
+                        })
+                    });
+
+                    const dados = await resposta.json();
+                    
+                    if (dados.point_of_interaction) {
+                        const qrCodeBase64 = dados.point_of_interaction.transaction_data.qr_code_base64;
+                        const copiaECola = dados.point_of_interaction.transaction_data.qr_code;
+
+                        document.getElementById('qrcode-pix').innerHTML = `<img src="data:image/png;base64,${qrCodeBase64}" width="150" height="150">`;
+                        document.getElementById('copia-cola-pix').value = copiaECola;
+                        document.getElementById('pix-status-msg').innerText = "Escaneie o QR Code ou copie o código abaixo:";
+                    } else {
+                        document.getElementById('pix-status-msg').innerText = "Erro ao gerar Pix automático. Selecione Dinheiro ou tente novamente.";
+                    }
+                } catch (e) {
+                    document.getElementById('pix-status-msg').innerText = "Erro de conexão com o Mercado Pago.";
+                }
             } else {
-                qrContainer.style.display = 'none';
+                pixContainer.style.display = 'none';
             }
         }
 
-        function copiarChavePix() {
-            navigator.clipboard.writeText("48984696949");
-            alert("Chave Pix (Telefone) copiada com sucesso!");
+        function copiarPixCopiaECola() {
+            const copyText = document.getElementById("copia-cola-pix");
+            copyText.select();
+            navigator.clipboard.writeText(copyText.value);
+            alert("Código Pix Copia e Cola copiado com sucesso!");
         }
 
         function gerarNumeroPedido() {
-            let ultimoPedido = localStorage.getItem('sakura_num_pedido') || 1000;
-            let novoPedido = parseInt(ultimoPedido) + 1;
-            localStorage.setItem('sakura_num_pedido', novoPedido);
-            return `#${novoPedido}`;
+            let ultimo = localStorage.getItem('sakura_pedido') || 1000;
+            let novo = parseInt(ultimo) + 1;
+            localStorage.setItem('sakura_pedido', novo);
+            return `#${novo}`;
         }
 
         async function finalizarPedido(event) {
@@ -293,46 +330,49 @@
             const pagamento = document.getElementById('pagamento').value;
 
             let itensTexto = "";
+            let carrinhoArrayParaEmail = [];
+
             carrinho.forEach(item => {
-                itensTexto += `- ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
+                itensTexto += `${item.qtd}x ${item.nome} - R$ ${(item.preco * item.qtd).toFixed(2)}\n`;
+                carrinhoArrayParaEmail.push({
+                    nome: item.nome,
+                    qtd: item.qtd,
+                    preco: item.preco,
+                    img: location.origin + '/' + item.img
+                });
             });
+
             const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-            
-            // Preenche o campo oculto para envio do e-mail
-            const corpoEmail = `PEDIDO: ${numPedido}\nCliente: ${nome}\nTelefone: ${telefone}\nEndereço: ${endereco}\nPagamento: ${pagamento}\n\nITENS:\n${itensTexto}\nTOTAL: R$ ${total.toFixed(2)}`;
-            document.getElementById('detalhes_pedido_input').value = corpoEmail;
-            document.getElementById('email-subject').value = `Novo Pedido ${numPedido} - Sakura Sushi`;
 
-            // Envio automático para o e-mail tropasc@gmail.com via Web3Forms
-            const formElement = document.getElementById('order-form');
-            const formData = new FormData(formElement);
-            // Injeta manualmente o destinatário configurado
-            formData.append('to', 'tropasc@gmail.com');
+            const dadosPedido = {
+                pedido: numPedido,
+                nome: nome,
+                telefone: telefone,
+                endereco: endereco,
+                pagamento: pagamento,
+                itens: itensTexto,
+                itensArray: carrinhoArrayParaEmail,
+                total: `R$ ${total.toFixed(2).replace('.', ',')}`
+            };
 
+            // Envio para o Google Apps Script (para disparar o e-mail formatado com imagens)
             try {
-                // Dispara requisição para enviar o e-mail nos bastidores
-                await fetch('https://api.web3forms.com/submit', {
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    mode: 'no-cors',
+                    body: JSON.stringify(dadosPedido)
                 });
             } catch (e) {
-                console.log("Erro ao disparar e-mail automatizado, prosseguindo com WhatsApp.");
+                console.log("Erro ao enviar email.");
             }
 
-            // Mensagem formatada para o WhatsApp corporativo
-            let detalhesWhatsApp = `🍣 *PEDIDO ${numPedido} - SAKURA SUSHI* 🍣\n\n`;
-            detalhesWhatsApp += `*Cliente:* ${nome}\n`;
-            detalhesWhatsApp += `*Telefone:* ${telefone}\n`;
-            detalhesWhatsApp += `*Endereço:* ${endereco}\n`;
-            detalhesWhatsApp += `*Pagamento:* ${pagamento}\n\n`;
-            detalhesWhatsApp += `*ITENS:* \n${itensTexto}\n`;
-            detalhesWhatsApp += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*`;
+            let msgWhats = `🍣 *PEDIDO ${numPedido} - SAKURA SUSHI* 🍣\n\n`;
+            msgWhats += `*Cliente:* ${nome}\n*Telefone:* ${telefone}\n*Endereço:* ${endereco}\n*Pagamento:* ${pagamento}\n\n`;
+            msgWhats += `*ITENS:*\n${itensTexto}\n*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*`;
 
-            const urlWhatsApp = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(detalhesWhatsApp)}`;
-            
-            alert(`Pedido ${numPedido} gerado com sucesso! E-mail enviado para tropasc@gmail.com e redirecionando para o WhatsApp...`);
-            window.open(urlWhatsApp, '_blank');
-            
+            alert(`Pedido ${numPedido} confirmado! Redirecionando para o WhatsApp...`);
+            window.open(`https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(msgWhats)}`, '_blank');
+
             carrinho = [];
             atualizarCarrinhoUI();
             fecharCheckout();
