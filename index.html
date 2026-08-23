@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakura Sushi Delivery</title>
+    <style>
+        :root {
+            --primary: #d90429;
+            --dark: #1b1b1b;
+            --light: #f8f9fa;
+            --gray: #6c757d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--light); color: var(--dark); padding-bottom: 80px; }
+        
+        header { background-color: var(--dark); color: white; padding: 20px; text-align: center; border-bottom: 4px solid var(--primary); }
+        header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        
+        .status-bar { padding: 10px; text-align: center; font-weight: bold; font-size: 0.9rem; }
+        .open { background-color: #2b9348; color: white; }
+        .closed { background-color: #ae2012; color: white; }
+
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .card-content { padding: 15px; }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+        .card-desc { font-size: 0.85rem; color: var(--gray); margin-bottom: 12px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border-top: 1px solid #eee; }
+        .price { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        
+        button { background-color: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: var(--gray); cursor: not-allowed; }
+
+        .cart-float { position: fixed; bottom: 0; left: 0; right: 0; background: var(--dark); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); z-index: 100; }
+        
+        /* Modal do Carrinho / Checkout */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 200; }
+        .modal-content { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 8px; max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 1px solid #f1f1f1; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🍣 Sakura Sushi</h1>
+        <p>O melhor sushi da cidade entregue na sua casa</p>
+    </header>
+
+    <div id="status-bar" class="status-bar">Verificando horário...</div>
+
+    <div class="container">
+        <h2>Cardápio de Pratos</h2>
+        <br>
+        <div class="menu-grid" id="menu-grid">
+            <!-- Os pratos serão injetados via JavaScript para fácil edição -->
+        </div>
+    </div>
+
+    <div class="cart-float" id="cart-float" style="display: none;">
+        <div>
+            <span id="cart-count">0</span> itens | Total: <strong id="cart-total">R$ 0,00</strong>
+        </div>
+        <button onclick="abrirCheckout()">Finalizar Pedido</button>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div class="modal" id="checkout-modal">
+        <div class="modal-content">
+            <h2>Finalizar Pedido</h2>
+            <div id="resumo-carrinho"></div>
+            <br>
+            <form id="order-form" onsubmit="enviarPedido(event)">
+                <div class="form-group">
+                    <label>Seu Nome:</label>
+                    <input type="text" id="nome" required placeholder="Ex: João da Silva">
+                </div>
+                <div class="form-group">
+                    <label>Telefone / WhatsApp:</label>
+                    <input type="text" id="telefone" required placeholder="(48) 99999-9999">
+                </div>
+                <div class="form-group">
+                    <label>Endereço Completo de Entrega:</label>
+                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Complemento">
+                </div>
+                <div class="form-group">
+                    <label>Forma de Pagamento:</label>
+                    <select id="pagamento" required>
+                        <option value="">Selecione...</option>
+                        <option value="Pix (Chave da Loja)">Pix (Aprovação Imediata)</option>
+                        <option value="Cartão na Entrega">Cartão na Entrega (Maquininha)</option>
+                        <option value="Dinheiro na Entrega">Dinheiro (Informar Troco)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar Pedido</button>
+                    <button type="button" onclick="fecharCheckout()" style="background-color: var(--gray); flex: 1;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CARDÁPIO EDITÁVEL (Altere fotos, nomes e valores aqui facilmente) ---
+        const produtos = [
+            { id: 1, nome: "Combo Hot Philadelphia (20 peças)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=400" },
+            { id: 2, nome: "Barca Especial Sakura (40 peças)", desc: "Variedade de niguiris, uramakis, hossomakis e sashimis.", preco: 129.90, img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400" },
+            { id: 3, nome: "Temaki Salmão Completo", desc: "Cone de alga recheado com arroz, salmão fresco e cream cheese.", preco: 26.50, img: "https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=400" },
+            { id: 4, nome: "Uramaki Skin (10 peças)", desc: "Enrolado invertido de pele de salmão grelhada com molho tare.", preco: 32.00, img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=400" },
+            { id: 5, nome: "Sashimi de Salmão (10 fatias)", desc: "Fatias nobres de salmão fresco cortadas milimetricamente.", preco: 45.00, img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400" },
+            { id: 6, nome: "Joy de Salmão (6 unidades)", desc: "Arroz envolvido em lâminas de salmão com cream cheese e ovas.", preco: 38.00, img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400" },
+            { id: 7, nome: "Hossomaki Pepino e Manga (10 un)", desc: "Opção leve e refrescante enrolada em alga por fora.", preco: 22.00, img: "https://images.unsplash.com/photo-1615361200141-f45040f367be?w=400" },
+            { id: 8, nome: "Gyosa de Frango (6 unidades)", desc: "Pastelzinho oriental cozido e grelhado recheado com frango e legumes.", preco: 28.00, img: "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=400" },
+            { id: 9, nome: "Sunomono Tradicional", desc: "Salada de pepino japonês fatiado com gergelim e kani.", preco: 16.00, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" },
+            { id: 10, nome: "Combinado Executivo (15 peças)", desc: "Ideal para uma pessoa. Variedade leve e saborosa.", preco: 39.90, img: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400" }
+        ];
+
+        let carrinho = [];
+        let lojaAberta = false;
+
+        // --- 2. VERIFICAR HORÁRIO DE FUNCIONAMENTO (19:00 às 23:00) ---
+        function verificarHorario() {
+            const agora = new Date();
+            const hora = agora.getHours();
+            const statusBar = document.getElementById('status-bar');
+
+            // Das 19h (19) até as 23h (23)
+            if (hora >= 19 && hora < 23) {
+                lojaAberta = true;
+                statusBar.className = "status-bar open";
+                statusBar.innerHTML = "🟢 Aberto agora! Fazendo entregas até as 23:00.";
+            } else {
+                lojaAberta = false;
+                statusBar.className = "status-bar closed";
+                statusBar.innerHTML = "🔴 Fechado no momento. Funcionamento das 19:00 às 23:00.";
+            }
+            renderizarMenu();
+        }
+
+        // --- 3. RENDERIZAR CARDÁPIO ---
+        function renderizarMenu() {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = "";
+
+            produtos.forEach(p => {
+                grid.innerHTML += `
+                    <div class="card">
+                        <img src="${p.img}" alt="${p.nome}">
+                        <div class="card-content">
+                            <div class="card-title">${p.nome}</div>
+                            <div class="card-desc">${p.desc}</div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="price">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
+                            <button onclick="adicionarAoCarrinho(${p.id})" ${!lojaAberta ? 'disabled' : ''}>
+                                ${lojaAberta ? 'Adicionar' : 'Fechado'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- 4. CONTROLE DO CARRINHO ---
+        function adicionarAoCarrinho(id) {
+            if (!lojaAberta) return alert("A loja está fechada no momento!");
+            const produto = produtos.find(item => item.id === id);
+            const itemCarrinho = carrinho.find(item => item.id === id);
+
+            if (itemCarrinho) {
+                itemCarrinho.qtd++;
+            } else {
+                carrinho.push({ ...produto, qtd: 1 });
+            }
+            atualizarCarrinhoUI();
+        }
+
+        function atualizarCarrinhoUI() {
+            const cartFloat = document.getElementById('cart-float');
+            const cartCount = document.getElementById('cart-count');
+            const cartTotal = document.getElementById('cart-total');
+
+            const totalItens = carrinho.reduce((sum, item) => sum + item.qtd, 0);
+            const valorTotal = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
+
+            if (totalItens > 0) {
+                cartFloat.style.display = "flex";
+                cartCount.innerText = totalItens;
+                cartTotal.innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+            } else {
+                cartFloat.style.display = "none";
+            }
+        }
+
+        function abrirCheckout() {
+            document.getElementById('checkout-modal').style.display = 'flex';
+            const resumo = document.getElementById('resumo-carrinho');
+            
+            let html = "<b>Itens selecionados:</b><br><br>";
+            carrinho.forEach(item => {
+                html += `<div class="cart-item"><span>${item.qtd}x ${item.nome}</span> <span>R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}</span></div>`;
+            });
+            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
+            html += `<hr style="margin: 10px 0;"><br><strong>Total a pagar: R$ ${total.toFixed(2).replace('.', ',')}</strong>`;
+            resumo.innerHTML = html;
+        }
+
+        function fecharCheckout() {
+            document.getElementById('checkout-modal').style.display = 'none';
+        }
+
+        // --- 5. ENVIO DE PEDIDO POR E-MAIL E WHATSAPP ---
+        function enviarPedido(event) {
+            event.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const endereco = document.getElementById('endereco').value;
+            const pagamento = document.getElementById('pagamento').value;
+
+            let detalhesPedido = `NOVO PEDIDO - SAKURA SUSHI\n\n`;
+            detalhesPedido += `Cliente: ${nome}\n`;
+            detalhesPedido += `Telefone: ${telefone}\n`;
+            detalhesPedido += `Endereço: ${endereco}\n`;
+            detalhesPedido += `Forma de Pagamento: ${pagamento}\n\n`;
+            detalhesPedido += `ITENS:\n`;
+
+            carrinho.forEach(item => {
+                detalhesPedido += `- ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
+            });
+
+            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
+            detalhesPedido += `\nTOTAL: R$ ${total.toFixed(2)}`;
+
+            // Como solução prática e imediata para envio por e-mail e WhatsApp simultâneo:
+            // Geramos um link do WhatsApp com o pedido formatado para você receber no seu celular,
+            // e para o e-mail, podemos plugar ferramentas gratuitas como Web3Forms.
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(detalhesPedido)}`;
+            
+            alert("Pedido gerado com sucesso! Você será redirecionado para concluir o envio.");
+            window.open(urlWhatsApp, '_blank');
+            
+            // Limpa o carrinho
+            carrinho = [];
+            atualizarCarrinhoUI();
+            fecharCheckout();
+        }
+
+        // Inicializar verificação
+        verificarHorario();
+        setInterval(verificarHorario, 60000); // Checa a cada 1 minuto se deu 19h ou fechou 23h
+    </script>
+</body>
+</html>
