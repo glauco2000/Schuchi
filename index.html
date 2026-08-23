@@ -84,27 +84,34 @@
             <div id="resumo-carrinho"></div>
             <br>
             <form id="order-form" onsubmit="finalizarPedido(event)">
+                <!-- Configuração do Web3Forms para enviar direto para o seu e-mail -->
+                <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_KEY">
+                <input type="hidden" name="subject" id="email-subject" value="Novo Pedido Sakura Sushi">
+
                 <div class="form-group">
                     <label>Seu Nome:</label>
-                    <input type="text" id="nome" required placeholder="Ex: João da Silva">
+                    <input type="text" id="nome" name="nome" required placeholder="Ex: João da Silva">
                 </div>
                 <div class="form-group">
                     <label>Telefone / WhatsApp:</label>
-                    <input type="text" id="telefone" required placeholder="(48) 99999-9999">
+                    <input type="text" id="telefone" name="telefone" required placeholder="(48) 99999-9999">
                 </div>
                 <div class="form-group">
                     <label>Endereço Completo de Entrega:</label>
-                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro, Complemento">
+                    <input type="text" id="endereco" name="endereco" required placeholder="Rua, Número, Bairro, Complemento">
                 </div>
                 <div class="form-group">
                     <label>Forma de Pagamento:</label>
-                    <select id="pagamento" required onchange="tratarPagamento()">
+                    <select id="pagamento" name="pagamento" required onchange="tratarPagamento()">
                         <option value="">Selecione...</option>
                         <option value="Pix">Pix (QR Code na tela - Chave: 48984696949)</option>
                         <option value="Mercado Pago Cartao">Cartão de Crédito (Mercado Pago)</option>
                         <option value="Dinheiro">Dinheiro na Entrega (Levar Troco)</option>
                     </select>
                 </div>
+
+                <!-- Campo oculto para o resumo detalhado ir no e-mail -->
+                <input type="hidden" id="detalhes_pedido_input" name="detalhes_do_pedido">
 
                 <!-- Área onde o QR Code do Pix aparece se escolhido -->
                 <div id="qrcode-container">
@@ -115,7 +122,7 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button type="submit" id="btn-enviar" style="flex: 2;">Enviar Pedido</button>
+                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar e Enviar Pedido</button>
                     <button type="button" onclick="fecharCheckout()" style="background-color: var(--gray); flex: 1;">Voltar</button>
                 </div>
             </form>
@@ -123,7 +130,6 @@
     </div>
 
     <script>
-        // --- CARDÁPIO COM NOMES DE ARQUIVOS CORRETOS NA PASTA img/ ---
         const produtos = [
             { id: 1, nome: "Combo Hot Philadelphia (20p)", desc: "Hot roll de salmão com cream cheese e cebolinha.", preco: 49.90, img: "img/hot.jpg" },
             { id: 2, nome: "Barca Especial Sakura (40p)", desc: "Variedade de niguiris, uramakis e sashimis.", preco: 129.90, img: "img/barca.jpg" },
@@ -255,7 +261,6 @@
                 qrContainer.style.display = 'block';
                 document.getElementById('qrcode').innerHTML = "";
                 
-                // Formata dados simulados para a chave do celular 48984696949
                 const dadosPix = `Chave Pix: 48984696949 | Valor: R$ ${total.toFixed(2)}`;
                 qrCodeInstance = new QRCode(document.getElementById("qrcode"), {
                     text: dadosPix,
@@ -279,7 +284,7 @@
             return `#${novoPedido}`;
         }
 
-        function finalizarPedido(event) {
+        async function finalizarPedido(event) {
             event.preventDefault();
             const numPedido = gerarNumeroPedido();
             const nome = document.getElementById('nome').value;
@@ -287,28 +292,45 @@
             const endereco = document.getElementById('endereco').value;
             const pagamento = document.getElementById('pagamento').value;
 
-            if (pagamento === 'Mercado Pago Cartao') {
-                alert("Redirecionando para o ambiente seguro do Mercado Pago...");
-                // Aqui no futuro inserimos o link ou integração do SDK do Mercado Pago
+            let itensTexto = "";
+            carrinho.forEach(item => {
+                itensTexto += `- ${item.qtd}x ${item.nome} (R$ ${(item.preco * item.qtd).toFixed(2)})\n`;
+            });
+            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
+            
+            // Preenche o campo oculto para envio do e-mail
+            const corpoEmail = `PEDIDO: ${numPedido}\nCliente: ${nome}\nTelefone: ${telefone}\nEndereço: ${endereco}\nPagamento: ${pagamento}\n\nITENS:\n${itensTexto}\nTOTAL: R$ ${total.toFixed(2)}`;
+            document.getElementById('detalhes_pedido_input').value = corpoEmail;
+            document.getElementById('email-subject').value = `Novo Pedido ${numPedido} - Sakura Sushi`;
+
+            // Envio automático para o e-mail tropasc@gmail.com via Web3Forms
+            const formElement = document.getElementById('order-form');
+            const formData = new FormData(formElement);
+            // Injeta manualmente o destinatário configurado
+            formData.append('to', 'tropasc@gmail.com');
+
+            try {
+                // Dispara requisição para enviar o e-mail nos bastidores
+                await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (e) {
+                console.log("Erro ao disparar e-mail automatizado, prosseguindo com WhatsApp.");
             }
 
-            let detalhesPedido = `🍣 *PEDIDO ${numPedido} - SAKURA SUSHI* 🍣\n\n`;
-            detalhesPedido += `*Cliente:* ${nome}\n`;
-            detalhesPedido += `*Telefone:* ${telefone}\n`;
-            detalhesPedido += `*Endereço:* ${endereco}\n`;
-            detalhesPedido += `*Pagamento:* ${pagamento}\n\n`;
-            detalhesPedido += `*ITENS:* \n`;
+            // Mensagem formatada para o WhatsApp corporativo
+            let detalhesWhatsApp = `🍣 *PEDIDO ${numPedido} - SAKURA SUSHI* 🍣\n\n`;
+            detalhesWhatsApp += `*Cliente:* ${nome}\n`;
+            detalhesWhatsApp += `*Telefone:* ${telefone}\n`;
+            detalhesWhatsApp += `*Endereço:* ${endereco}\n`;
+            detalhesWhatsApp += `*Pagamento:* ${pagamento}\n\n`;
+            detalhesWhatsApp += `*ITENS:* \n${itensTexto}\n`;
+            detalhesWhatsApp += `*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*`;
 
-            carrinho.forEach(item => {
-                detalhesPedido += `• ${item.qtd}x ${item.nome} - R$ ${(item.preco * item.qtd).toFixed(2).replace('.', ',')}\n`;
-            });
-
-            const total = carrinho.reduce((sum, item) => sum + (item.preco * item.qtd), 0);
-            detalhesPedido += `\n*TOTAL: R$ ${total.toFixed(2).replace('.', ',')}*`;
-
-            const urlWhatsApp = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(detalhesPedido)}`;
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(detalhesWhatsApp)}`;
             
-            alert(`Pedido ${numPedido} gerado com sucesso! Redirecionando para o WhatsApp...`);
+            alert(`Pedido ${numPedido} gerado com sucesso! E-mail enviado para tropasc@gmail.com e redirecionando para o WhatsApp...`);
             window.open(urlWhatsApp, '_blank');
             
             carrinho = [];
