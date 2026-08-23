@@ -7,12 +7,17 @@
     <style>
         :root { --primary: #d90429; --dark: #121212; --light: #f4f4f5; --green: #2b9348; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--light); padding-bottom: 90px; }
-        header { background: var(--dark); color: white; padding: 30px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
-        header h1 { margin: 0; font-size: 2.5rem; letter-spacing: 1px; }
-        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        header { background: var(--dark); color: white; padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
+        header h1 { margin: 0; font-size: 2.3rem; }
         
-        .produto { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; flex-direction: column; }
-        .produto:hover { transform: translateY(-5px); }
+        /* Barra de status da loja */
+        .status-loja { padding: 10px; font-weight: bold; text-align: center; font-size: 0.95rem; }
+        .aberto { background-color: #2b9348; color: white; }
+        .fechado { background-color: #d90429; color: white; }
+
+        .container { max-width: 900px; margin: 25px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        .produto { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
         .produto img { width: 100%; height: 200px; object-fit: cover; }
         .produto-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
         .produto-info h3 { margin: 0 0 10px 0; color: var(--dark); }
@@ -21,6 +26,7 @@
         .preco { font-weight: bold; color: var(--green); font-size: 1.3rem; }
         button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         button:hover { background: #b20322; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         
         #cart-float { position: fixed; bottom: 25px; right: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; display: none; align-items: center; gap: 15px; cursor: pointer; box-shadow: 0 5px 20px rgba(43,147,72,0.4); z-index: 100; font-size: 1.1rem; }
         
@@ -37,8 +43,11 @@
 
     <header>
         <h1>Sakura Sushi</h1>
-        <p>Tradição e Qualidade na sua casa</p>
+        <p style="margin: 5px 0 0 0;">Tradição e Qualidade na sua casa</p>
     </header>
+
+    <!-- Indicador de Horário de Funcionamento -->
+    <div id="status-loja" class="status-loja fechado">Verificando horário...</div>
 
     <div class="container" id="menu">
         <!-- Produtos injetados via JavaScript -->
@@ -88,9 +97,8 @@
         // ==========================================
         // COLE SUA NOVA URL DO SCRIPT AQUI ABAIXO
         // ==========================================
-        const GOOGLE_SCRIPT_URL = "SUA_NOVA_URL_AQUI"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAOBNwEirAg5jdB0qbpzeUsUG9QWejiHe07Vw39NbYY8EHUD2JdGRimO2etleSEKtY/exec"; 
         
-        // Base de dados dos produtos ligada às suas imagens do GitHub
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
             { id: 2, nome: 'Combinado Executivo', preco: 65.00, desc: 'Perfeito para o almoço.', img: 'img/combinado-executiv.jpg' },
@@ -106,7 +114,6 @@
 
         let carrinho = [];
 
-        // Renderiza os produtos na tela
         function carregarProdutos() {
             const menu = document.getElementById('menu');
             produtos.forEach(p => {
@@ -118,11 +125,20 @@
                             <p>${p.desc}</p>
                             <div class="preco-add">
                                 <span class="preco">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
-                                <button onclick="addCarrinho(${p.id}, '${p.nome}', ${p.preco})">Adicionar</button>
+                                <button class="btn-add-prod" onclick="addCarrinho(${p.id}, '${p.nome}', ${p.preco})">Adicionar</button>
                             </div>
                         </div>
                     </div>`;
             });
+        }
+
+        // Converte o caminho relativo da imagem para URL absoluta do GitHub (para o Mercado Pago e E-mail)
+        function obterUrlAbsoluta(caminhoRelativo) {
+            let baseUrl = window.location.href.split('?')[0];
+            if (!baseUrl.endsWith('/')) {
+                baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+            }
+            return baseUrl + caminhoRelativo;
         }
 
         function addCarrinho(id, nome, preco) {
@@ -165,6 +181,18 @@
             const total = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
             const itensTexto = carrinho.map(i => `${i.qtd}x ${i.nome} - R$ ${(i.preco * i.qtd).toFixed(2)}`).join('\n');
             
+            // Mapeia os itens adicionando a URL absoluta de cada imagem
+            const itensCompletos = carrinho.map(itemProd => {
+                const original = produtos.find(p => p.id === itemProd.id);
+                return {
+                    nome: itemProd.nome,
+                    preco: itemProd.preco,
+                    qtd: itemProd.qtd,
+                    desc: original ? original.desc : '',
+                    img: original ? obterUrlAbsoluta(original.img) : ''
+                };
+            });
+
             const dadosPedido = {
                 pedido: pedidoId,
                 nome: document.getElementById('nome').value,
@@ -172,8 +200,8 @@
                 endereco: document.getElementById('endereco').value,
                 pagamento: document.getElementById('pagamento').value,
                 itens: itensTexto,
-                itensArray: carrinho,
-                total: `R$ ${total.toFixed(2).replace('.', ',')}`
+                itensArray: itensCompletos,
+                total: `R$ ${total.toFixed(2).replace('.', ', ')}`
             };
 
             if (dadosPedido.pagamento.includes('Pix')) {
@@ -226,7 +254,30 @@
             }
         }
 
+        // Controle de Horário (Aberto das 19h às 23h)
+        function verificarHorario() {
+            const agora = new Date();
+            const hora = agora.getHours();
+            const statusDiv = document.getElementById('status-loja');
+            const botoes = document.querySelectorAll('.btn-add-prod');
+            
+            // Regra: Aberto das 19h até as 23h
+            const aberto = (hora >= 19 && hora < 23);
+            
+            if (aberto) {
+                statusDiv.className = "status-loja aberto";
+                statusDiv.innerText = "🟢 Loja Aberta! Faça o seu pedido (Atendimento até às 23:00)";
+                botoes.forEach(b => b.disabled = false);
+            } else {
+                statusDiv.className = "status-loja fechado";
+                statusDiv.innerText = "🔴 Loja Fechada no momento. Horário de atendimento: das 19:00 às 23:00";
+                botoes.forEach(b => b.disabled = true);
+            }
+        }
+
         carregarProdutos();
+        verificarHorario();
+        setInterval(verificarHorario, 60000);
         window.onload = verificarRetornoMP;
     </script>
 </body>
