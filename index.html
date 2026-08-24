@@ -80,14 +80,14 @@
                     <label>Forma de Pagamento</label>
                     <select id="pagamento" required>
                         <option value="" disabled selected>Selecione...</option>
-                        <option value="Pix">Pix / Cartão (Mercado Pago)</option>
-                        <option value="Dinheiro">PIX ou Dinheiro na Entrega</option>
+                        <option value="Pix (Mercado Pago)">Pix / Cartão (Mercado Pago)</option>
+                        <option value="PIX ou Dinheiro na Entrega">PIX ou Dinheiro na Entrega</option>
                     </select>
                 </div>
                 
                 <div style="display: flex; gap: 10px;">
                     <button type="button" onclick="fecharCheckout()" style="background: #ccc; color: #333; flex: 1;">Voltar</button>
-                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar e Pagar</button>
+                    <button type="submit" id="btn-enviar" style="flex: 2;">Confirmar Pedido</button>
                 </div>
             </form>
         </div>
@@ -226,7 +226,7 @@
                 total: `R$ ${total.toFixed(2).replace('.', ', ')}`
             };
 
-            if (dadosPedido.pagamento.includes('Pix')) {
+            if (dadosPedido.pagamento.includes('Mercado Pago')) {
                 dadosPedido.acao = "gerar_pagamento";
                 localStorage.setItem('sakura_pedido_mp', JSON.stringify(dadosPedido));
                 
@@ -241,11 +241,11 @@
                         window.location.href = res.url; 
                     } else {
                         alert("Erro ao conectar com Mercado Pago.");
-                        btn.innerText = "Confirmar e Pagar"; btn.disabled = false;
+                        btn.innerText = "Confirmar Pedido"; btn.disabled = false;
                     }
                 } catch(erro) {
                     alert("Verifique a URL do Google Script no código.");
-                    btn.innerText = "Confirmar e Pagar"; btn.disabled = false;
+                    btn.innerText = "Confirmar Pedido"; btn.disabled = false;
                 }
             } else {
                 dadosPedido.acao = "enviar_notificacao";
