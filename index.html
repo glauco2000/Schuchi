@@ -64,28 +64,17 @@
             <div id="resumo-carrinho" style="margin-bottom: 20px;"></div>
             
             <form id="form-pedido" onsubmit="finalizarPedido(event)">
-                <!-- Campo com Autocompletar (Exemplo adaptado mantendo o layout) -->
-                <div class="form-group">
-                    <label>Identificação / Placa ou Código</label>
-                    <input type="text" id="codigoBusca" placeholder="Digite para autocompletar..." list="lista-opcoes">
-                    <datalist id="lista-opcoes">
-                        <option value="AMC1A20">
-                        <option value="AEI2C30">
-                        <option value="AOU1A10">
-                    </datalist>
-                </div>
-
                 <div class="form-group">
                     <label>Nome completo</label>
-                    <input type="text" id="nome" required>
+                    <input type="text" id="nome" autocomplete="name" required>
                 </div>
                 <div class="form-group">
                     <label>Telefone (WhatsApp)</label>
-                    <input type="tel" id="telefone" placeholder="(48) 99999-9999" maxlength="15" required>
+                    <input type="tel" id="telefone" autocomplete="tel" placeholder="(48) 99999-9999" maxlength="15" required>
                 </div>
                 <div class="form-group">
                     <label>Endereço de Entrega</label>
-                    <input type="text" id="endereco" required placeholder="Rua, Número, Bairro">
+                    <input type="text" id="endereco" autocomplete="street-address" required placeholder="Rua, Número, Bairro">
                 </div>
                 <div class="form-group">
                     <label>Forma de Pagamento</label>
@@ -105,6 +94,9 @@
     </div>
 
     <script>
+        // ==========================================
+        // COLE SUA URL DO GOOGLE SCRIPT AQUI ABAIXO
+        // ==========================================
         const GOOGLE_SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI"; 
         
         const produtos = [
@@ -187,7 +179,7 @@
 
         function fecharCheckout() { document.getElementById('checkout-modal').style.display = 'none'; }
 
-        // Máscara dinâmica para o Telefone: (48) 99999-9999
+        // Máscara dinâmica para o Telefone (WhatsApp): (48) 99999-9999
         const inputTelefone = document.getElementById('telefone');
         inputTelefone.addEventListener('input', function(e) {
             let valor = e.target.value.replace(/\D/g, '');
