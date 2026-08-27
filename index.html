@@ -73,6 +73,10 @@
                     <input type="text" id="endereco" autocomplete="street-address" required placeholder="Rua, Número, Bairro">
                 </div>
                 <div class="form-group">
+                    <label>Observações do Pedido (Opcional)</label>
+                    <input type="text" id="observacoes" placeholder="Ex: Sem cebola, sem gergelim, troco para 50...">
+                </div>
+                <div class="form-group">
                     <label>Forma de Pagamento</label>
                     <select id="pagamento" required>
                         <option value="" disabled selected>Selecione...</option>
@@ -90,8 +94,8 @@
     </div>
 
     <script>
-        // URL DO GOOGLE SCRIPT
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKmDQ9eAuO2Ui9_PiUVOJ82YFVVZ7NDi8o1vt7Sv7TMnhRoMnYo-Lr8akr7TDtskXz/exec"; 
+        // COLOQUE SUA NOVA URL AQUI
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5MeHks12X30cwSR3seTFoAAf63VF0czP45xLtVHY-NGU5OE-C2HDQj61fE6oKhc9_/exec"; 
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
@@ -190,7 +194,7 @@
             btn.disabled = true;
 
             const pedidoId = '#' + Math.floor(Math.random() * 90000 + 10000);
-            const totalNumerico = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0); // Calculo real corrigido
+            const totalNumerico = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0); 
             const itensTexto = carrinho.map(i => `${i.qtd}x ${i.nome} - R$ ${(i.preco * i.qtd).toFixed(2)}`).join('\n');
             
             const itensCompletos = carrinho.map(itemProd => {
@@ -209,9 +213,10 @@
                 telefone: document.getElementById('telefone').value,
                 endereco: document.getElementById('endereco').value,
                 pagamento: document.getElementById('pagamento').value,
+                observacoes: document.getElementById('observacoes').value, // Pegando o novo campo
                 itens: itensTexto,
                 itensArray: itensCompletos,
-                total: totalNumerico, // Agora envia como número para evitar falhas no backend
+                total: totalNumerico, 
                 totalFormatado: `R$ ${totalNumerico.toFixed(2).replace('.', ',')}`
             };
 
@@ -244,20 +249,31 @@
 
         async function dispararFinal(dadosPedido) {
             const btn = document.getElementById('btn-enviar');
+            btn.innerText = "Registrando pedido..."; // Informa o usuário sem travar a tela
             try {
-                // Aguarda o script registrar na planilha antes de mandar o cliente para o zap
+                // Aguarda o script registrar na planilha e mandar o email
                 await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
                     body: JSON.stringify(dadosPedido) 
                 });
                 
-                const msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
-                alert("Pedido confirmado! Redirecionando para o WhatsApp...");
-                // Link oficial mais estável para WhatsApp
-                window.location.href = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
+                btn.innerText = "Redirecionando..."; 
+                
+                let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
+                
+                // Adiciona as observações na mensagem do WhatsApp se o cliente digitou algo
+                if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
+                    msg += `\n*Obs:* ${dadosPedido.observacoes}`;
+                }
+                
+                // Usa assign() sem o alert() para evitar bloqueio do navegador de celular
+                const urlWhatsApp = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
+                window.location.assign(urlWhatsApp);
+                
             } catch(e) {
                 alert("Houve um erro ao enviar seu pedido. Tente novamente.");
-                btn.innerText = "Confirmar Pedido"; btn.disabled = false;
+                btn.innerText = "Confirmar Pedido"; 
+                btn.disabled = false;
             }
         }
 
