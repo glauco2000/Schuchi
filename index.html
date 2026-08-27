@@ -10,7 +10,6 @@
         header { background: var(--dark); color: white; padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
         header h1 { margin: 0; font-size: 2.3rem; }
         
-        /* Barra de status da loja */
         .status-loja { padding: 10px; font-weight: bold; text-align: center; font-size: 0.95rem; }
         .aberto { background-color: #2b9348; color: white; }
         .fechado { background-color: #d90429; color: white; }
@@ -46,12 +45,9 @@
         <p style="margin: 5px 0 0 0;">Tradição e Qualidade na sua casa</p>
     </header>
 
-    <!-- Indicador de Horário de Funcionamento -->
     <div id="status-loja" class="status-loja fechado">Verificando horário...</div>
 
-    <div class="container" id="menu">
-        <!-- Produtos injetados via JavaScript -->
-    </div>
+    <div class="container" id="menu"></div>
 
     <div id="cart-float" onclick="abrirCheckout()">
         <span>🛒</span>
@@ -94,10 +90,8 @@
     </div>
 
     <script>
-        // ==========================================
-        // COLE SUA URL DO GOOGLE SCRIPT AQUI ABAIXO
-        // ==========================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTrBWhihGa50OTs2bnBIW18ZmEzVxq12bAk2saQiWKSDWM0Pxm8FbnYbVyfJm3BEvW/exec"; 
+        // URL DO GOOGLE SCRIPT
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKmDQ9eAuO2Ui9_PiUVOJ82YFVVZ7NDi8o1vt7Sv7TMnhRoMnYo-Lr8akr7TDtskXz/exec"; 
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
@@ -179,29 +173,24 @@
 
         function fecharCheckout() { document.getElementById('checkout-modal').style.display = 'none'; }
 
-        // Máscara dinâmica para o Telefone (WhatsApp): (48) 99999-9999
         const inputTelefone = document.getElementById('telefone');
         inputTelefone.addEventListener('input', function(e) {
             let valor = e.target.value.replace(/\D/g, '');
             if (valor.length > 11) valor = valor.slice(0, 11);
-
-            if (valor.length > 6) {
-                valor = `(${valor.slice(0, 2)}) ${valor.slice(2, 7)}-${valor.slice(7)}`;
-            } else if (valor.length > 2) {
-                valor = `(${valor.slice(0, 2)}) ${valor.slice(2)}`;
-            } else if (valor.length > 0) {
-                valor = `(${valor}`;
-            }
+            if (valor.length > 6) valor = `(${valor.slice(0, 2)}) ${valor.slice(2, 7)}-${valor.slice(7)}`;
+            else if (valor.length > 2) valor = `(${valor.slice(0, 2)}) ${valor.slice(2)}`;
+            else if (valor.length > 0) valor = `(${valor}`;
             e.target.value = valor;
         });
 
         async function finalizarPedido(e) {
             e.preventDefault();
             const btn = document.getElementById('btn-enviar');
-            btn.innerText = "Aguarde..."; btn.disabled = true;
+            btn.innerText = "Processando..."; 
+            btn.disabled = true;
 
             const pedidoId = '#' + Math.floor(Math.random() * 90000 + 10000);
-            const total = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+            const totalNumerico = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0); // Calculo real corrigido
             const itensTexto = carrinho.map(i => `${i.qtd}x ${i.nome} - R$ ${(i.preco * i.qtd).toFixed(2)}`).join('\n');
             
             const itensCompletos = carrinho.map(itemProd => {
@@ -210,7 +199,6 @@
                     nome: itemProd.nome,
                     preco: itemProd.preco,
                     qtd: itemProd.qtd,
-                    desc: original ? original.desc : '',
                     img: original ? obterUrlAbsoluta(original.img) : ''
                 };
             });
@@ -223,7 +211,8 @@
                 pagamento: document.getElementById('pagamento').value,
                 itens: itensTexto,
                 itensArray: itensCompletos,
-                total: `R$ ${total.toFixed(2).replace('.', ', ')}`
+                total: totalNumerico, // Agora envia como número para evitar falhas no backend
+                totalFormatado: `R$ ${totalNumerico.toFixed(2).replace('.', ',')}`
             };
 
             if (dadosPedido.pagamento.includes('Mercado Pago')) {
@@ -240,11 +229,11 @@
                     if(res.status === "sucesso") {
                         window.location.href = res.url; 
                     } else {
-                        alert("Erro ao conectar com Mercado Pago.");
+                        alert("Erro ao conectar com Mercado Pago. Tente novamente.");
                         btn.innerText = "Confirmar Pedido"; btn.disabled = false;
                     }
                 } catch(erro) {
-                    alert("Verifique a URL do Google Script no código.");
+                    alert("Erro de conexão. Verifique sua internet ou tente outra forma de pagamento.");
                     btn.innerText = "Confirmar Pedido"; btn.disabled = false;
                 }
             } else {
@@ -254,10 +243,22 @@
         }
 
         async function dispararFinal(dadosPedido) {
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(dadosPedido) });
-            const msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.total}`;
-            alert("Pedido confirmado! Enviando para o WhatsApp...");
-            window.location.href = `https://api.whatsapp.com/send?phone=5548984696949&text=${encodeURIComponent(msg)}`;
+            const btn = document.getElementById('btn-enviar');
+            try {
+                // Aguarda o script registrar na planilha antes de mandar o cliente para o zap
+                await fetch(GOOGLE_SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(dadosPedido) 
+                });
+                
+                const msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
+                alert("Pedido confirmado! Redirecionando para o WhatsApp...");
+                // Link oficial mais estável para WhatsApp
+                window.location.href = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
+            } catch(e) {
+                alert("Houve um erro ao enviar seu pedido. Tente novamente.");
+                btn.innerText = "Confirmar Pedido"; btn.disabled = false;
+            }
         }
 
         function verificarRetornoMP() {
