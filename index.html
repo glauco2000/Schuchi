@@ -94,8 +94,7 @@
     </div>
 
     <script>
-        // COLOQUE SUA URL DO GOOGLE SCRIPT AQUI
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5MeHks12X30cwSR3seTFoAAf63VF0czP45xLtVHY-NGU5OE-C2HDQj61fE6oKhc9_/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyTaNKVsIdmZ51_r_kWC7C4gaoFYNW5KxmBf2LdFUwhZ6Bm9XiV1InyiXdnrDXbUU/exec"; 
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
@@ -249,31 +248,24 @@
 
         async function dispararFinal(dadosPedido) {
             const btn = document.getElementById('btn-enviar');
-            btn.innerText = "Enviando pedido..."; 
+            btn.innerText = "Registrando pedido..."; 
             
             try {
-                // 1. PRIMEIRO: Aguarda o salvamento na planilha e o disparo do e-mail
                 await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
                     body: JSON.stringify(dadosPedido) 
                 });
             } catch(e) {
-                console.log("Erro de rede ao registrar, mas prosseguindo.");
+                console.log("Erro de rede ao registrar, mas prosseguindo com o atendimento.");
             }
             
-            // 2. SEGUNDO: Limpa o carrinho e fecha o modal para o cliente ver que concluiu
             carrinho = [];
             atualizarUI();
             fecharCheckout();
             
-            // Reseta o botão
             btn.innerText = "Confirmar Pedido";
             btn.disabled = false;
 
-            // 3. TERCEIRO: Exibe o alerta claro de sucesso para o cliente na tela do site
-            alert("✅ Pedido realizado com sucesso! Sua solicitação foi enviada para nossa cozinha. Vamos abrir o WhatsApp para concluir o atendimento.");
-
-            // 4. POR FIM: Abre o WhatsApp em segundo plano
             let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
             
             if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
@@ -283,7 +275,10 @@
             msg += `\n\n*Itens:*\n${dadosPedido.itens}`;
 
             const urlWhatsApp = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
-            window.open(urlWhatsApp, '_blank');
+
+            if (confirm("✅ Pedido gravado e e-mail enviado com sucesso!\n\nClique em 'OK' para abrir o WhatsApp e enviar os detalhes para a nossa cozinha.")) {
+                window.location.href = urlWhatsApp;
+            }
         }
 
         function verificarRetornoMP() {
