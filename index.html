@@ -94,7 +94,7 @@
     </div>
 
     <script>
-        // COLOQUE SUA NOVA URL AQUI
+        // COLOQUE SUA URL DO GOOGLE SCRIPT AQUI
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5MeHks12X30cwSR3seTFoAAf63VF0czP45xLtVHY-NGU5OE-C2HDQj61fE6oKhc9_/exec"; 
         
         const produtos = [
@@ -213,7 +213,7 @@
                 telefone: document.getElementById('telefone').value,
                 endereco: document.getElementById('endereco').value,
                 pagamento: document.getElementById('pagamento').value,
-                observacoes: document.getElementById('observacoes').value, // Pegando o novo campo
+                observacoes: document.getElementById('observacoes').value,
                 itens: itensTexto,
                 itensArray: itensCompletos,
                 total: totalNumerico, 
@@ -249,32 +249,41 @@
 
         async function dispararFinal(dadosPedido) {
             const btn = document.getElementById('btn-enviar');
-            btn.innerText = "Registrando pedido..."; // Informa o usuário sem travar a tela
+            btn.innerText = "Enviando pedido..."; 
+            
             try {
-                // Aguarda o script registrar na planilha e mandar o email
+                // 1. PRIMEIRO: Aguarda o salvamento na planilha e o disparo do e-mail
                 await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
                     body: JSON.stringify(dadosPedido) 
                 });
-                
-                btn.innerText = "Redirecionando..."; 
-                
-                let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
-                
-                // Adiciona as observações na mensagem do WhatsApp se o cliente digitou algo
-                if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
-                    msg += `\n*Obs:* ${dadosPedido.observacoes}`;
-                }
-                
-                // Usa assign() sem o alert() para evitar bloqueio do navegador de celular
-                const urlWhatsApp = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
-                window.location.assign(urlWhatsApp);
-                
             } catch(e) {
-                alert("Houve um erro ao enviar seu pedido. Tente novamente.");
-                btn.innerText = "Confirmar Pedido"; 
-                btn.disabled = false;
+                console.log("Erro de rede ao registrar, mas prosseguindo.");
             }
+            
+            // 2. SEGUNDO: Limpa o carrinho e fecha o modal para o cliente ver que concluiu
+            carrinho = [];
+            atualizarUI();
+            fecharCheckout();
+            
+            // Reseta o botão
+            btn.innerText = "Confirmar Pedido";
+            btn.disabled = false;
+
+            // 3. TERCEIRO: Exibe o alerta claro de sucesso para o cliente na tela do site
+            alert("✅ Pedido realizado com sucesso! Sua solicitação foi enviada para nossa cozinha. Vamos abrir o WhatsApp para concluir o atendimento.");
+
+            // 4. POR FIM: Abre o WhatsApp em segundo plano
+            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
+            
+            if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
+                msg += `\n*Obs:* ${dadosPedido.observacoes}`;
+            }
+            
+            msg += `\n\n*Itens:*\n${dadosPedido.itens}`;
+
+            const urlWhatsApp = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
+            window.open(urlWhatsApp, '_blank');
         }
 
         function verificarRetornoMP() {
