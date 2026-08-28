@@ -1,4 +1,4 @@
-       <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -94,7 +94,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7v0ZBhK8Q8_WXgNar7JpsldWrxd0_rztWnAHhMU64j2nRqrG5qnOG9MywUNFsREwhvg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwECa51H5-7X2xV42_bRtRacWMWcI_mvPIsQxManLF0OHWTqlavm1M_I8uesML6_GCZKg/exec"; 
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
@@ -221,7 +221,6 @@
                 totalFormatado: `R$ ${totalNumerico.toFixed(2).replace('.', ',')}`
             };
 
-            // Se for Mercado Pago, define a ação para o Apps Script gerar o link de pagamento
             if (tipoPagamento.includes('Mercado Pago')) {
                 dadosPedido.acao = "gerar_pagamento";
                 localStorage.setItem('sushi_pedido_mp', JSON.stringify(dadosPedido));
@@ -236,7 +235,6 @@
                     if(res.status === "sucesso" && res.url) {
                         window.location.href = res.url; 
                     } else {
-                        // Fallback caso o script retorne sucesso mas sem URL (envia normal ou avisa)
                         alert("Erro ao conectar com Mercado Pago. Tente novamente.");
                         btn.innerText = "Confirmar Pedido"; 
                         btn.disabled = false;
@@ -247,7 +245,6 @@
                     btn.disabled = false;
                 }
             } else {
-                // Pagamento na entrega (PIX ou Dinheiro) -> Registra e vai direto pro WhatsApp
                 dadosPedido.acao = "enviar_notificacao";
                 dispararFinal(dadosPedido);
             }
@@ -258,14 +255,13 @@
             btn.innerText = "Registrando pedido..."; 
             
             try {
-                // Utiliza mode: 'no-cors' para evitar problemas de CORS comuns do Google Apps Script em requisições POST simples
+                // Utilizando requisição padrão POST limpa sem forçar no-cors que quebrava o recebimento no Google Apps Script
                 await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
-                    mode: 'no-cors',
                     body: JSON.stringify(dadosPedido) 
                 });
             } catch(e) {
-                console.log("Erro de rede ao registrar, mas prosseguindo com o atendimento.");
+                console.log("Aviso de rede, prosseguindo com o envio do WhatsApp.");
             }
             
             carrinho = [];
