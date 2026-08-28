@@ -6,7 +6,7 @@
     <title>Sushi do Osmar - Delivery</title>
     <style>
         :root { --primary: #d90429; --dark: #121212; --light: #f4f4f5; --green: #2b9348; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--light); padding-bottom: 90px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--light); display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 90px; }
         header { background: var(--dark); color: white; padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
         header h1 { margin: 0; font-size: 2.3rem; }
         
@@ -14,7 +14,7 @@
         .aberto { background-color: #2b9348; color: white; }
         .fechado { background-color: #d90429; color: white; }
 
-        .container { max-width: 900px; margin: 25px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .container { max-width: 900px; margin: 25px auto; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; flex: 1; width: 100%; box-sizing: border-box; }
         
         .produto { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
         .produto img { width: 100%; height: 200px; object-fit: cover; }
@@ -41,6 +41,49 @@
         .cart-item-controls { display: flex; align-items: center; gap: 8px; }
         .btn-qtd { background: #eee; color: #333; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
         .btn-qtd:hover { background: #ddd; }
+
+        /* Estilos do Rodapé */
+        footer {
+            background-color: var(--dark);
+            color: #bbb;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 50px;
+            border-top: 1px solid #222;
+            font-size: 0.9rem;
+        }
+        footer .footer-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+        footer .footer-contact {
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+        footer .footer-contact a {
+            color: #25d366; /* Cor verde do WhatsApp */
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        footer .footer-contact a:hover {
+            text-decoration: underline;
+        }
+        footer .secure-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #ddd;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -53,6 +96,21 @@
     <div id="status-loja" class="status-loja fechado">Verificando horário...</div>
 
     <div class="container" id="menu"></div>
+
+    <!-- Rodapé da Empresa -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-contact">
+                Entre em contato • Sushi do Osmar: <a href="https://wa.me/5548984696949" target="_blank">(48) 98469-6949</a>
+            </div>
+            <div class="secure-badge">
+                🔒 Site Seguro &amp; Conectado
+            </div>
+            <div style="font-size: 0.8rem; color: #777; margin-top: 5px;">
+                &copy; Sushi do Osmar - Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
 
     <div id="cart-float" onclick="abrirCheckout()">
         <span>🛒</span>
@@ -99,7 +157,7 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwECa51H5-7X2xV42_bRtRacWMWcI_mvPIsQxManLF0OHWTqlavm1M_I8uesML6_GCZKg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7v0ZBhK8Q8_WXgNar7JpsldWrxd0_rztWnAHhMU64j2nRqrG5qnOG9MywUNFsREwhvg/exec"; 
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
@@ -166,11 +224,10 @@
 
             atualizarUI();
             
-            // Se o carrinho ficar vazio, fecha o modal automaticamente
             if (carrinho.length === 0) {
                 fecharCheckout();
             } else {
-                abrirCheckout(); // Atualiza a visualização do modal
+                abrirCheckout();
             }
         }
 
@@ -312,7 +369,7 @@
             btn.innerText = "Confirmar Pedido";
             btn.disabled = false;
 
-            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPipe = dadosPedido.endereco}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
+            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
             
             if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
                 msg += `\n*Obs:* ${dadosPedido.observacoes}`;
