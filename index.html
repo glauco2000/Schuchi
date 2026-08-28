@@ -3,237 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sushi do Osmar - Cardápio Digital</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Sushi do Osmar</title>
     <style>
         :root {
             --primary: #d90429;
             --secondary: #2b2d42;
             --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-color: #212529;
-            --accent: #ffb703;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding-bottom: 80px;
-        }
-
-        header {
-            background-color: var(--secondary);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            font-size: 0.9rem;
-            color: #adb5bd;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-        }
-
-        .card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .card-desc {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-bottom: 12px;
-            flex-grow: 1;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-        }
-
-        .price {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .btn-add {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .btn-add:hover {
-            background-color: #b7031f;
-        }
-
-        /* Carrinho Flutuante */
-        .cart-float {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--primary);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-            z-index: 100;
-        }
-
-        /* Modal de Checkout */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            width: 90%;
-            max-width: 500px;
-            padding: 20px;
-            border-radius: 10px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 10px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            font-size: 0.95rem;
-        }
-
-        .cart-items-list {
-            margin-bottom: 15px;
-            max-height: 150px;
-            overflow-y: auto;
-            border-bottom: 1px solid #dee2e6;
-            padding-bottom: 10px;
-        }
-
-        .cart-item-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .btn-checkout {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 12px;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .btn-checkout:hover {
-            background-color: #218838;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: #212529; padding-bottom: 80px; }
+        header { background-color: var(--secondary); color: white; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+        header p { font-size: 0.9rem; color: #adb5bd; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-3px); }
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+        .card-content { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; }
+        .card-desc { font-size: 0.85rem; color: #6c757d; margin-bottom: 12px; flex-grow: 1; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .price { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        .btn-add { background-color: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn-add:hover { background-color: #b7031f; }
+        .cart-float { position: fixed; bottom: 20px; right: 20px; background-color: var(--primary); color: white; padding: 12px 20px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; z-index: 100; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; width: 90%; max-width: 500px; padding: 20px; border-radius: 10px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #dee2e6; padding-bottom: 10px; }
+        .close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 0.95rem; }
+        .cart-items-list { margin-bottom: 15px; max-height: 150px; overflow-y: auto; border-bottom: 1px solid #dee2e6; padding-bottom: 10px; }
+        .cart-item-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; }
+        .btn-checkout { background-color: #28a745; color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-checkout:hover { background-color: #218838; }
     </style>
 </head>
 <body>
@@ -244,18 +49,14 @@
     </header>
 
     <div class="container">
-        <div class="menu-grid" id="menu-grid">
-            <!-- Os produtos serão injetados via JavaScript -->
-        </div>
+        <div class="menu-grid" id="menu-grid"></div>
     </div>
 
-    <!-- Botão Flutuante do Carrinho -->
     <div class="cart-float" onclick="abrirCheckout()">
         <i class="fa-solid fa-cart-shopping"></i>
         <span>Ver Carrinho (<span id="cart-count">0</span>)</span>
     </div>
 
-    <!-- Modal do Carrinho / Checkout -->
     <div class="modal" id="checkout-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -263,9 +64,7 @@
                 <button class="close-btn" onclick="fecharCheckout()">&times;</button>
             </div>
             
-            <div class="cart-items-list" id="cart-items-container">
-                <!-- Itens adicionados aparecem aqui -->
-            </div>
+            <div class="cart-items-list" id="cart-items-container"></div>
 
             <div style="text-align: right; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem;">
                 Total: <span id="cart-total" style="color: var(--primary);">R$ 0,00</span>
@@ -282,20 +81,18 @@
                 </div>
                 <div class="form-group">
                     <label for="endereco">Endereço de Entrega:</label>
-                    <textarea id="endereco" rows="2" required placeholder="Rua, Número, Bairro, Complemento"></textarea>
+                    <textarea id="endereco" rows="2" required placeholder="Rua, Número, Bairro"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="pagamento">Forma de Pagamento:</label>
                     <select id="pagamento" required>
-                        <option value="Dinheiro">Dinheiro</option>
-                        <option value="Cartão na Entrega">Cartão na Entrega</option>
-                        <option value="Pix (Entrega/Manual)">Pix</option>
+                        <option value="Pagamento na Entrega">Pagamento na Entrega (Dinheiro/Cartão)</option>
                         <option value="Mercado Pago (Online)">Mercado Pago (Online)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="observacoes">Observações (Opcional):</label>
-                    <textarea id="observacoes" rows="2" placeholder="Ex: Sem cebolinha, caprichar no gengibre..."></textarea>
+                    <textarea id="observacoes" rows="2" placeholder="Ex: Sem cebolinha..."></textarea>
                 </div>
 
                 <button type="submit" class="btn-checkout" id="btn-enviar">Confirmar Pedido</button>
@@ -303,9 +100,12 @@
         </div>
     </div>
 
+    <!-- Iframe oculto para submissão garantida ao Apps Script sem bloqueio de CORS -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
     <script>
-        // SUBSTITUA ABAIXO PELA SUA URL DE WEB APP DO GOOGLE APPS SCRIPT
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzr0uAQcuwf1kGUwmUquBPx74wlAvR5ywwjQ5HCxIHweapwCHdOGFe1hlWv0qmT5d80sA/exec";
+        // COLE A SUA URL DO WEB APP DO GOOGLE APPS SCRIPT ABAIXO
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7v0ZBhK8Q8_WXgNar7JpsldWrxd0_rztWnAHhMU64j2nRqrG5qnOG9MywUNFsREwhvg/exec";
 
         const produtos = [
             { id: 1, nome: "Combinado Simples (15 peças)", desc: "Hossomaki, Uramaki e Niguiri variado.", preco: 45.00, img: "img/combinado-simples.jpg" },
@@ -340,7 +140,6 @@
         function adicionarAoCarrinho(id) {
             const produto = produtos.find(p => p.id === id);
             const itemExistente = carrinho.find(i => i.id === id);
-            
             if (itemExistente) {
                 itemExistente.qtd++;
             } else {
@@ -420,7 +219,7 @@
                 itensArray: carrinho
             };
 
-            // Se for Mercado Pago Online, geramos a preferência de pagamento primeiro
+            // Se for Mercado Pago Online, buscamos o link de pagamento
             if (pagamento === "Mercado Pago (Online)") {
                 try {
                     const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -440,16 +239,21 @@
                 }
             }
 
-            // Envio padrão para entrega (gravação na planilha + e-mail + WhatsApp)
-            try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(dadosPedido)
-                });
-            } catch (e) {
-                console.log("Erro de requisição, prosseguindo com WhatsApp.");
-            }
+            // Envio garantido para gravação na planilha e e-mail via formulário invisível (evita erro de CORS)
+            const form = document.createElement('form');
+            form.action = GOOGLE_SCRIPT_URL;
+            form.method = 'POST';
+            form.target = 'hidden_iframe';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'payloadJson';
+            input.value = JSON.stringify(dadosPedido);
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
 
             carrinho = [];
             atualizarUI();
@@ -471,7 +275,6 @@
             }
         }
 
-        // Inicializar cardápio ao carregar
         window.onload = renderizarMenu;
     </script>
 </body>
