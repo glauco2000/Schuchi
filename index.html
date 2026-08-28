@@ -6,7 +6,7 @@
     <title>Sushi do Osmar - Delivery</title>
     <style>
         :root { --primary: #d90429; --dark: #121212; --light: #f4f4f5; --green: #2b9348; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--light); display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 90px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--light); display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 110px; }
         header { background: var(--dark); color: white; padding: 25px 20px; text-align: center; border-bottom: 4px solid var(--primary); }
         header h1 { margin: 0; font-size: 2.3rem; }
         
@@ -27,7 +27,77 @@
         button:hover { background: #b20322; }
         button:disabled { background: #ccc; cursor: not-allowed; }
         
-        #cart-float { position: fixed; bottom: 25px; right: 25px; background: var(--green); color: white; padding: 15px 25px; border-radius: 50px; display: none; align-items: center; gap: 15px; cursor: pointer; box-shadow: 0 5px 20px rgba(43,147,72,0.4); z-index: 100; font-size: 1.1rem; }
+        /* Rodapé fixo na parte inferior com o carrinho integrado */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--dark);
+            color: #bbb;
+            text-align: center;
+            padding: 12px 20px;
+            border-top: 2px solid var(--primary);
+            font-size: 0.85rem;
+            z-index: 90;
+            box-sizing: border-box;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+        }
+        footer .footer-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        footer .footer-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            text-align: left;
+        }
+        footer .footer-contact {
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        footer .footer-contact a {
+            color: #25d366;
+            text-decoration: none;
+        }
+        footer .footer-contact a:hover {
+            text-decoration: underline;
+        }
+        footer .secure-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        /* Botão do Carrinho Integrado no Rodapé */
+        #cart-footer-btn { 
+            background: var(--green); 
+            color: white; 
+            padding: 10px 20px; 
+            border-radius: 50px; 
+            display: none; 
+            align-items: center; 
+            gap: 12px; 
+            cursor: pointer; 
+            box-shadow: 0 3px 10px rgba(43,147,72,0.4); 
+            font-size: 1rem; 
+            font-weight: bold;
+            border: none;
+            transition: 0.2s;
+        }
+        #cart-footer-btn:hover {
+            background: #237a3c;
+        }
         
         #checkout-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
@@ -37,52 +107,20 @@
         .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
         #btn-enviar { width: 100%; padding: 15px; font-size: 1.1rem; margin-top: 15px; background: var(--green); }
         
-        /* Estilos dos botões de quantidade no carrinho */
         .cart-item-controls { display: flex; align-items: center; gap: 8px; }
         .btn-qtd { background: #eee; color: #333; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
         .btn-qtd:hover { background: #ddd; }
 
-        /* Estilos do Rodapé */
-        footer {
-            background-color: var(--dark);
-            color: #bbb;
-            text-align: center;
-            padding: 30px 20px;
-            margin-top: 50px;
-            border-top: 1px solid #222;
-            font-size: 0.9rem;
-        }
-        footer .footer-content {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-        }
-        footer .footer-contact {
-            color: white;
-            font-size: 1.05rem;
-            font-weight: 600;
-        }
-        footer .footer-contact a {
-            color: #25d366; /* Cor verde do WhatsApp */
-            text-decoration: none;
-            transition: 0.2s;
-        }
-        footer .footer-contact a:hover {
-            text-decoration: underline;
-        }
-        footer .secure-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 6px 14px;
-            border-radius: 20px;
-            color: #ddd;
-            font-size: 0.85rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        @media (max-width: 650px) {
+            footer .footer-container {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            footer .footer-info {
+                align-items: center;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -97,25 +135,25 @@
 
     <div class="container" id="menu"></div>
 
-    <!-- Rodapé da Empresa -->
+    <!-- Rodapé Fixo com Contato, Selo Seguro e Botão do Carrinho -->
     <footer>
-        <div class="footer-content">
-            <div class="footer-contact">
-                Entre em contato • Sushi do Osmar: <a href="https://wa.me/5548984696949" target="_blank">(48) 98469-6949</a>
+        <div class="footer-container">
+            <div class="footer-info">
+                <div class="footer-contact">
+                    Entre em contato com Sushi do Osmar: <a href="https://wa.me/5548984696949" target="_blank">(48) 98469-6949</a>
+                </div>
+                <div class="secure-badge">
+                    🔒 Site Seguro &amp; Conectado &bull; &copy; Sushi do Osmar
+                </div>
             </div>
-            <div class="secure-badge">
-                🔒 Site Seguro &amp; Conectado
-            </div>
-            <div style="font-size: 0.8rem; color: #777; margin-top: 5px;">
-                &copy; Sushi do Osmar - Todos os direitos reservados.
-            </div>
+            
+            <!-- Botão do Carrinho alinhado dentro do rodapé -->
+            <button id="cart-footer-btn" onclick="abrirCheckout()">
+                <span>🛒</span>
+                <span><span id="cart-count">0</span> itens | <span id="cart-total">R$ 0,00</span></span>
+            </button>
         </div>
     </footer>
-
-    <div id="cart-float" onclick="abrirCheckout()">
-        <span>🛒</span>
-        <div style="font-weight: bold;"><span id="cart-count">0</span> itens | <span id="cart-total">R$ 0,00</span></div>
-    </div>
 
     <div id="checkout-modal">
         <div class="modal-content">
@@ -157,11 +195,11 @@
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7v0ZBhK8Q8_WXgNar7JpsldWrxd0_rztWnAHhMU64j2nRqrG5qnOG9MywUNFsREwhvg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwECa51H5-7X2xV42_bRtRacWMWcI_mvPIsQxManLF0OHWTqlavm1M_I8uesML6_GCZKg/exec"; 
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
-            { id: 2, nome: 'Combinado Executivo', preco: 65.00, desc: 'Perfeito para o almoço.', img: 'img/combinado-executiv.jpg' },
+            { id: 2, nome: 'Combinado Executivo', preco: 65.00, desc: 'Perfeito para o almoço.', img: 'img/combinado-executivo.jpg' },
             { id: 3, nome: 'Porção de Gyosa', preco: 28.00, desc: 'Pastéis orientais recheados.', img: 'img/gyosa.jpg' },
             { id: 4, nome: 'Hossomaki', preco: 22.00, desc: 'Rolinhos tradicionais finos.', img: 'img/hossomaki.jpg' },
             { id: 5, nome: 'Joy de Salmão', preco: 35.00, desc: 'O queridinho da casa.', img: 'img/joy-salmao.jpg' },
@@ -236,7 +274,7 @@
             const totalValor = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
             document.getElementById('cart-count').innerText = totalItens;
             document.getElementById('cart-total').innerText = `R$ ${totalValor.toFixed(2).replace('.', ',')}`;
-            document.getElementById('cart-float').style.display = totalItens > 0 ? 'flex' : 'none';
+            document.getElementById('cart-footer-btn').style.display = totalItens > 0 ? 'inline-flex' : 'none';
         }
 
         function abrirCheckout() {
