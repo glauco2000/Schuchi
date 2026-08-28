@@ -36,6 +36,11 @@
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
         .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
         #btn-enviar { width: 100%; padding: 15px; font-size: 1.1rem; margin-top: 15px; background: var(--green); }
+        
+        /* Estilos dos botões de quantidade no carrinho */
+        .cart-item-controls { display: flex; align-items: center; gap: 8px; }
+        .btn-qtd { background: #eee; color: #333; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+        .btn-qtd:hover { background: #ddd; }
     </style>
 </head>
 <body>
@@ -106,7 +111,7 @@
             { id: 7, nome: 'Sashimi de Salmão', preco: 45.00, desc: 'Fatias frescas de salmão.', img: 'img/sashimi-salmao.jpg' },
             { id: 8, nome: 'Sunomono', preco: 18.00, desc: 'Salada refrescante de pepino.', img: 'img/sunomono.jpg' },
             { id: 9, nome: 'Temaki de Salmão', preco: 32.00, desc: 'Cone de alga com salmão.', img: 'img/temaki-salmao.jpg' },
-            { id: 10, nome: 'Uramaki Skin', preco: 1.00, desc: 'Pele de salmão grelhada.', img: 'img/uramaki-skin.jpg' }
+            { id: 10, nome: 'Uramaki Skin', preco: 22.00, desc: 'Pele de salmão grelhada.', img: 'img/uramaki-skin.jpg' }
         ];
 
         let carrinho = [];
@@ -122,7 +127,7 @@
                             <p>${p.desc}</p>
                             <div class="preco-add">
                                 <span class="preco">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
-                                <button class="btn-add-prod" onclick="addCarrinho(${p.id}, '${p.nome}', ${p.preco})">Adicionar</button>
+                                <button class="btn-add-prod" onclick="addCarrinho(${p.id})">Adicionar</button>
                             </div>
                         </div>
                     </div>`;
@@ -137,10 +142,36 @@
             return baseUrl + caminhoRelativo;
         }
 
-        function addCarrinho(id, nome, preco) {
+        function addCarrinho(id) {
+            const produtoOriginal = produtos.find(p => p.id === id);
+            if (!produtoOriginal) return;
+
             const item = carrinho.find(i => i.id === id);
-            if (item) item.qtd++; else carrinho.push({ id, nome, preco, qtd: 1 });
+            if (item) {
+                item.qtd++;
+            } else {
+                carrinho.push({ id: produtoOriginal.id, nome: produtoOriginal.nome, preco: produtoOriginal.preco, qtd: 1 });
+            }
             atualizarUI();
+        }
+
+        function alterarQtd(id, delta) {
+            const item = carrinho.find(i => i.id === id);
+            if (!item) return;
+
+            item.qtd += delta;
+            if (item.qtd <= 0) {
+                carrinho = carrinho.filter(i => i.id !== id);
+            }
+
+            atualizarUI();
+            
+            // Se o carrinho ficar vazio, fecha o modal automaticamente
+            if (carrinho.length === 0) {
+                fecharCheckout();
+            } else {
+                abrirCheckout(); // Atualiza a visualização do modal
+            }
         }
 
         function atualizarUI() {
@@ -152,6 +183,7 @@
         }
 
         function abrirCheckout() {
+            if (carrinho.length === 0) return;
             document.getElementById('checkout-modal').style.display = 'flex';
             const resumo = document.getElementById('resumo-carrinho');
             let html = "";
@@ -163,12 +195,22 @@
                 const original = produtos.find(p => p.id === i.id);
                 const imgPath = original ? original.img : '';
                 
-                html += `<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px;">
+                html += `<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <img src="${imgPath}" width="40" height="40" style="object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'">
-                                <span><strong>${i.qtd}x</strong> ${i.nome}</span>
+                                <div>
+                                    <div style="font-size: 0.95rem; font-weight: 600; color: #333;">${i.nome}</div>
+                                    <div style="font-size: 0.85rem; color: #666;">R$ ${i.preco.toFixed(2).replace('.',',')} un</div>
+                                </div>
                             </div>
-                            <span style="font-weight: 600;">R$ ${sub.toFixed(2).replace('.',',')}</span>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="cart-item-controls">
+                                    <button type="button" class="btn-qtd" onclick="alterarQtd(${i.id}, -1)">-</button>
+                                    <span style="font-weight: bold; min-width: 15px; text-align: center;">${i.qtd}</span>
+                                    <button type="button" class="btn-qtd" onclick="alterarQtd(${i.id}, 1)">+</button>
+                                </div>
+                                <span style="font-weight: 600; min-width: 65px; text-align: right;">R$ ${sub.toFixed(2).replace('.',',')}</span>
+                            </div>
                        </div>`;
             });
             resumo.innerHTML = html + `<div style="margin-top: 10px; text-align: right;"><strong style="font-size:1.1rem; color:var(--green)">Total: R$ ${total.toFixed(2).replace('.',',')}</strong></div>`;
@@ -255,7 +297,6 @@
             btn.innerText = "Registrando pedido..."; 
             
             try {
-                // Utilizando requisição padrão POST limpa sem forçar no-cors que quebrava o recebimento no Google Apps Script
                 await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
                     body: JSON.stringify(dadosPedido) 
@@ -271,7 +312,7 @@
             btn.innerText = "Confirmar Pedido";
             btn.disabled = false;
 
-            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
+            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPipe = dadosPedido.endereco}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
             
             if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
                 msg += `\n*Obs:* ${dadosPedido.observacoes}`;
