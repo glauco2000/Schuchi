@@ -444,17 +444,17 @@
             const statusDiv = document.getElementById('status-loja');
             const botoes = document.querySelectorAll('.btn-add-prod');
             
-            const abre = 18;
+            const abre = 19;
             const fecha = 23;
             const aberto = (hora >= abre && hora < fecha);
-            
+
             if (aberto) {
                 statusDiv.className = "status-loja aberto";
-                statusDiv.innerText = "🟢 Loja Aberta! Faça o seu pedido (Atendimento até às ${fecha}:00)";
+                statusDiv.innerText = `🟢 Loja Aberta! Faça o seu pedido (Atendimento até às ${fecha}:00)`;
                 botoes.forEach(b => b.disabled = false);
             } else {
                 statusDiv.className = "status-loja fechado";
-                statusDiv.innerText = "🔴 Loja Fechada no momento. Horário de atendimento: das ${abre}:00 às ${fecha}:00";
+                statusDiv.innerText = `🔴 Loja Fechada no momento. Horário de atendimento: das ${abre}:00 às ${fecha}:00`;
                 botoes.forEach(b => b.disabled = true);
             }
         }
