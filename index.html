@@ -111,7 +111,7 @@
         .btn-qtd { background: #eee; color: #333; border: none; width: 28px; height: 28px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
         .btn-qtd:hover { background: #ddd; }
 
-        @media (max-width: 650px) {
+        @media (max-width: 800px) {
             footer .footer-container {
                 flex-direction: column;
                 align-items: center;
@@ -129,7 +129,7 @@
     <header>
         <h1>Sushi do Osmar</h1>
         <p style="margin: 5px 0 2px 0;">Tradição e Qualidade na sua casa</p>
-        <p style="margin: 0; font-size: 0.95rem; color: #ffccd5; font-weight: 600;">🛵 Entrega na Grande Florianópolis</p>
+        <p style="margin: 0; font-size: 0.95rem; color: #ffccd5; font-weight: 600;">🛵 Entrega na Grande Florianópolis 🛵</p>
     </header>
 
     <div id="status-loja" class="status-loja fechado">Verificando horário...</div>
@@ -141,7 +141,7 @@
         <div class="footer-container">
             <div class="footer-info">
                 <div class="footer-contact">
-                    Entre em contato com Sushi do Osmar: <a href="https://wa.me/5548984696949" target="_blank">(48) 98469-6949</a>
+                    Entre em contato com Sushi do Osmar: <br>☎ <a href="https://wa.me/5548984696949" target="_blank">(48) 98469-6949</a>
                 </div>
                 <div class="secure-badge">
                     🔒 Site Seguro &amp; Conectado &bull; &copy; Sushi do Osmar
@@ -201,7 +201,7 @@
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
-            { id: 2, nome: 'yakisoba', preco: 120.00, desc: 'yakisoba É uma receita feita com macarrão frito ou refogado, Leva legumes variados como brócolis, cenoura, couve-flor e repolho, inclui carnes como frango, carne bovina ou suína.', img: 'img/yakisoba.jpg' },
+            { id: 2, nome: 'Yakisoba', preco: 120.00, desc: 'yakisoba É uma receita feita com macarrão frito ou refogado, Leva legumes variados como brócolis, cenoura, couve-flor e repolho, inclui carnes como frango, carne bovina ou suína.', img: 'img/yakisoba.jpg' },
             { id: 3, nome: 'Porção de Gyosa', preco: 28.00, desc: 'Pastéis orientais recheados.', img: 'img/gyosa.jpg' },
             { id: 4, nome: 'Hossomaki', preco: 22.00, desc: 'Rolinhos tradicionais finos.', img: 'img/hossomaki.jpg' },
             { id: 5, nome: 'Joy de Salmão', preco: 35.00, desc: 'O queridinho da casa.', img: 'img/joy-salmao.jpg' },
@@ -464,7 +464,7 @@
         const statusDiv = document.getElementById('status-loja');
         const botoes = document.querySelectorAll('.btn-add-prod');
 
-        const abre = 19;
+        const abre = 17;
         const fecha = 23;
         const aberto = (hora >= abre && hora < fecha);
 
