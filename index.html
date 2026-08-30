@@ -128,7 +128,8 @@
 
     <header>
         <h1>Sushi do Osmar</h1>
-        <p style="margin: 5px 0 0 0;">Tradição e Qualidade na sua casa</p>
+        <p style="margin: 5px 0 2px 0;">Tradição e Qualidade na sua casa</p>
+        <p style="margin: 0; font-size: 0.95rem; color: #ffccd5; font-weight: 600;">🛵 Entrega na Grande Florianópolis</p>
     </header>
 
     <div id="status-loja" class="status-loja fechado">Verificando horário...</div>
@@ -196,6 +197,7 @@
 
     <script>
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwECa51H5-7X2xV42_bRtRacWMWcI_mvPIsQxManLF0OHWTqlavm1M_I8uesML6_GCZKg/exec"; 
+        const VALOR_FRETE = 15.00;
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
@@ -271,9 +273,11 @@
 
         function atualizarUI() {
             const totalItens = carrinho.reduce((acc, i) => acc + i.qtd, 0);
-            const totalValor = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+            const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+            const valorTotal = totalItens > 0 ? subtotal + VALOR_FRETE : 0;
+
             document.getElementById('cart-count').innerText = totalItens;
-            document.getElementById('cart-total').innerText = `R$ ${totalValor.toFixed(2).replace('.', ',')}`;
+            document.getElementById('cart-total').innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
             document.getElementById('cart-footer-btn').style.display = totalItens > 0 ? 'inline-flex' : 'none';
         }
 
@@ -282,11 +286,11 @@
             document.getElementById('checkout-modal').style.display = 'flex';
             const resumo = document.getElementById('resumo-carrinho');
             let html = "";
-            let total = 0;
+            let subtotal = 0;
             
             carrinho.forEach(i => {
                 const sub = i.preco * i.qtd;
-                total += sub;
+                subtotal += sub;
                 const original = produtos.find(p => p.id === i.id);
                 const imgPath = original ? original.img : '';
                 
@@ -308,7 +312,21 @@
                             </div>
                        </div>`;
             });
-            resumo.innerHTML = html + `<div style="margin-top: 10px; text-align: right;"><strong style="font-size:1.1rem; color:var(--green)">Total: R$ ${total.toFixed(2).replace('.',',')}</strong></div>`;
+
+            const totalGeral = subtotal + VALOR_FRETE;
+
+            resumo.innerHTML = html + `
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: #555; margin-top: 12px;">
+                    <span>Subtotal dos produtos:</span>
+                    <span>R$ ${subtotal.toFixed(2).replace('.',',')}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: #555; margin-top: 5px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <span>Taxa de Entrega (Grande Florianópolis):</span>
+                    <span>R$ ${VALOR_FRETE.toFixed(2).replace('.',',')}</span>
+                </div>
+                <div style="margin-top: 10px; text-align: right;">
+                    <strong style="font-size:1.1rem; color:var(--green)">Total: R$ ${totalGeral.toFixed(2).replace('.',',')}</strong>
+                </div>`;
         }
 
         function fecharCheckout() { document.getElementById('checkout-modal').style.display = 'none'; }
@@ -330,7 +348,8 @@
             btn.disabled = true;
 
             const pedidoId = '#' + Math.floor(Math.random() * 90000 + 10000);
-            const totalNumerico = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0); 
+            const subtotalNumerico = carrinho.reduce((acc, i) => acc + (i.preco * i.qtd), 0);
+            const totalNumerico = subtotalNumerico + VALOR_FRETE; 
             const itensTexto = carrinho.map(i => `${i.qtd}x ${i.nome} - R$ ${(i.preco * i.qtd).toFixed(2)}`).join('\n');
             
             const itensCompletos = carrinho.map(itemProd => {
@@ -407,13 +426,14 @@
             btn.innerText = "Confirmar Pedido";
             btn.disabled = false;
 
-            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n*Total:* ${dadosPedido.totalFormatado}`;
+            let msg = `🍣 *NOVO PEDIDO ${dadosPedido.pedido}*\n\n*Cliente:* ${dadosPedido.nome}\n*Endereço:* ${dadosPedido.endereco}\n*Pagamento:* ${dadosPedido.pagamento}\n`;
+            msg += `\n*Itens:*\n${dadosPedido.itens}\n`;
+            msg += `\n*Taxa de Entrega:* R$ ${VALOR_FRETE.toFixed(2).replace('.', ',')}`;
+            msg += `\n*Total Geral:* ${dadosPedido.totalFormatado}`;
             
             if (dadosPedido.observacoes && dadosPedido.observacoes.trim() !== "") {
                 msg += `\n*Obs:* ${dadosPedido.observacoes}`;
             }
-            
-            msg += `\n\n*Itens:*\n${dadosPedido.itens}`;
 
             const urlWhatsApp = `https://wa.me/5548984696949?text=${encodeURIComponent(msg)}`;
 
