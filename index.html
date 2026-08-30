@@ -20,7 +20,7 @@
         .produto img { width: 100%; height: 200px; object-fit: cover; }
         .produto-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
         .produto-info h3 { margin: 0 0 10px 0; color: var(--dark); }
-        .produto-info p { margin: 0 0 15px 0; color: #666; font-size: 0.9rem; flex-grow: 1; }
+        .produto-info p { margin: 0 0 15px 0; color: #666; font-size: 0.9rem; flex-grow: 1; text-align: justify;}
         .preco-add { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
         .preco { font-weight: bold; color: var(--green); font-size: 1.3rem; }
         button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
@@ -199,7 +199,7 @@
         
         const produtos = [
             { id: 1, nome: 'Barca Especial', preco: 149.90, desc: 'A melhor seleção do chef.', img: 'img/barca-especial.jpg' },
-            { id: 2, nome: 'yakisoba', preco: 120.00, desc: 'yakisoba É uma receita feita com macarrão frito ou refogado, Leva legumes variados como brócolis, cenoura, couve-flor e repolho. Inclui carnes como frango, carne bovina ou suína.', img: 'img/yakisoba.jpg' },
+            { id: 2, nome: 'yakisoba', preco: 120.00, desc: 'yakisoba É uma receita feita com macarrão frito ou refogado, Leva legumes variados como brócolis, cenoura, couve-flor e repolho, inclui carnes como frango, carne bovina ou suína.', img: 'img/yakisoba.jpg' },
             { id: 3, nome: 'Porção de Gyosa', preco: 28.00, desc: 'Pastéis orientais recheados.', img: 'img/gyosa.jpg' },
             { id: 4, nome: 'Hossomaki', preco: 22.00, desc: 'Rolinhos tradicionais finos.', img: 'img/hossomaki.jpg' },
             { id: 5, nome: 'Joy de Salmão', preco: 35.00, desc: 'O queridinho da casa.', img: 'img/joy-salmao.jpg' },
